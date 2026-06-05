@@ -1,0 +1,50 @@
+[
+  {
+    "title": "各地培育新场景新业态 激发消费活力",
+    "url": "https://www.gov.cn/yaowen/liebiao/202606/content_7071059.htm",
+    "date": "2026-06-04",
+    "economic": true,
+    "category": {
+      "field": "🏭 产业经济",
+      "sub_field": "消费与服务业"
+    },
+    "relevance": 3,
+    "rationale": "核心报道各地通过城市更新、农文旅融合等手段培育消费新场景新业态，全文围绕促消费政策展开"
+  },
+  {
+    "title": "我国自贸试验区持续提升对外开放水平",
+    "url": "https://www.gov.cn/yaowen/liebiao/202606/content_7071058.htm",
+    "date": "2026-06-04",
+    "economic": true,
+    "category": {
+      "field": "🌏 国际贸易与对外经济",
+      "sub_field": "自贸区与开放平台"
+    },
+    "relevance": 3,
+    "rationale": "核心报道自贸试验区制度创新、外资利用和外贸进出口数据（前4月同增超30%），全文聚焦开放型经济"
+  },
+  {
+    "title": "提额扩围拓场景 住房公积金惠民再升级",
+    "url": "https://www.gov.cn/zhengce/202606/content_7071043.htm",
+    "date": "2026-06-04",
+    "economic": true,
+    "category": {
+      "field": "🏭 产业经济",
+      "sub_field": "房地产与基建"
+    },
+    "relevance": 3,
+    "rationale": "核心报道全国60+城市住房公积金政策密集调整，涉及贷款额度、首付比例、提取范围等多维度住房金融政策，直接关联房地产市场"
+  },
+  {
+    "title": "5月中国物流业景气指数为50.3% 需求重回扩张区间 市场预期保持向好",
+    "url": "https://www.gov.cn/yaowen/liebiao/202606/content_7071042.htm",
+    "date": "2026-06-04",
+    "economic": true,
+    "category": {
+      "field": "🏭 产业经济",
+      "sub_field": "物流与交通"
+    },
+    "relevance": 3,
+    "rationale": "核心报道重要经济先行指标——物流业景气指数的月度数据发布，含分项指数分析和产业链运行研判"
+  }
+]
