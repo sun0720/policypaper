@@ -1,0 +1,373 @@
+@import "tailwindcss";
+
+/* ====== 配色变量 ====== */
+:root {
+  --background: #faf8f5;
+  --foreground: #2d2a26;
+  --muted: #57534e;           /* 提高对比度 原 #78716c → AA 级 */
+  --accent: #b45309;
+  --accent-light: #d97706;    /* 新增：hover 亮琥珀 */
+  --card: #ffffff;
+  --card-hover: #faf8f5;      /* 新增：卡片悬停微变色 */
+  --border: #e7e5e4;
+  --divider: #d6d3d1;         /* 新增：比 border 稍深的分隔线 */
+  --shadow-sm: 0 1px 2px rgba(0,0,0,0.04);
+  --shadow-md: 0 2px 8px rgba(0,0,0,0.06);
+}
+
+/* ====== 暗色模式 ====== */
+@media (prefers-color-scheme: dark) {
+  :root {
+    --background: #1c1917;
+    --foreground: #f5f0eb;
+    --muted: #b8b2ae;          /* 提高对比度 原 #a8a29e */
+    --accent: #f59e0b;
+    --accent-light: #fbbf24;
+    --card: #2e2b29;           /* 提高卡片可见性 原 #292524 */
+    --card-hover: #35312e;
+    --border: #524d49;         /* 提高边框可见性 原 #44403c */
+    --divider: #5c5652;
+    --shadow-sm: 0 1px 2px rgba(0,0,0,0.15);
+    --shadow-md: 0 2px 8px rgba(0,0,0,0.25);
+  }
+}
+
+/* ====== 基础排版 ====== */
+body {
+  background: var(--background);
+  color: var(--foreground);
+  font-family: system-ui, -apple-system, "PingFang SC", "Microsoft YaHei", sans-serif;
+  font-size: 16px;
+  line-height: 1.8;
+}
+
+.prose {
+  max-width: 72ch;
+  margin: 0 auto;
+  padding: 0 1rem;            /* 移动端呼吸空间 */
+}
+
+/* 标题层级 — 明确递进差 */
+.prose h1 {
+  font-family: 'STSong', 'Songti SC', 'Noto Serif SC', Georgia, serif;
+  font-size: clamp(1.5rem, 3vw, 2rem);
+  line-height: 1.4;
+  font-weight: 700;
+  letter-spacing: 0;
+}
+.prose h2 {
+  font-family: 'STSong', 'Songti SC', 'Noto Serif SC', Georgia, serif;
+  font-size: clamp(1.2rem, 2.5vw, 1.5rem);
+  line-height: 1.5;
+  font-weight: 600;
+  color: var(--accent);
+}
+.prose h3 {
+  font-family: 'STSong', 'Songti SC', 'Noto Serif SC', Georgia, serif;
+  font-size: clamp(1.05rem, 2vw, 1.25rem);
+  line-height: 1.6;
+  font-weight: 600;
+}
+.prose h4 {
+  font-size: 1.05rem;
+  line-height: 1.6;
+  font-weight: 600;
+}
+
+/* ====== 页面级模块间距 ====== */
+.page-hero {
+  margin-bottom: 2rem;
+}
+.date-section {
+  margin-bottom: 2rem;        /* 原 2.5rem → 2rem */
+}
+.date-section + .date-section {
+  /* 连续日期组间距已由 .date-section 控制 */
+}
+
+/* 日期标题行 */
+.date-heading {
+  display: flex;
+  align-items: baseline;
+  gap: 0.75rem;
+  margin-bottom: 0.75rem;
+  padding-bottom: 0.5rem;
+  border-bottom: 2px solid var(--divider);
+}
+
+/* ====== NewsCard — 紧凑化 ====== */
+.news-card {
+  padding: 1rem 0;
+  border-bottom: 1px solid var(--border);
+}
+.news-card:last-child {
+  border-bottom: none;        /* 最后一个不画线，日期分隔线已足够 */
+}
+
+.news-card h2 {
+  font-size: clamp(1.1rem, 2vw, 1.3rem);
+  margin-bottom: 0.3rem;
+}
+
+.news-card .news-meta {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  margin-bottom: 0.3rem;
+  font-size: 0.8rem;
+  color: var(--muted);
+}
+
+.news-card .news-source {
+  font-size: 0.8rem;
+  margin-bottom: 0.6rem;
+}
+
+/* 折叠选题摘要 */
+.news-card details {
+  font-size: 0.9rem;
+  color: var(--muted);
+}
+.news-card summary {
+  cursor: pointer;
+  color: var(--foreground);
+  font-weight: 500;
+  margin-bottom: 0.4rem;
+  transition: color 0.15s;
+}
+.news-card summary:hover {
+  color: var(--accent);
+}
+.news-card details ol {
+  margin: 0;
+  padding-left: 1.25rem;
+  display: flex;
+  flex-direction: column;
+  gap: 0.25rem;
+}
+
+/* ====== TopicCard — 核心排版优化 ====== */
+.topic-card {
+  background: var(--card);
+  border: 1px solid var(--border);
+  border-left: 3px solid var(--accent);  /* 学术引用风格左边框 */
+  border-radius: 6px;
+  padding: 1.25rem 1.5rem;
+  margin: 0 0 1rem 0;         /* 仅底部间距，避免叠加 */
+  box-shadow: var(--shadow-sm);
+  transition: box-shadow 0.2s, border-color 0.2s;
+}
+.topic-card:hover {
+  box-shadow: var(--shadow-md);
+  border-color: var(--divider);
+}
+
+/* 选题视角标签 — 中文不做 uppercase */
+.topic-card .perspective-label {
+  font-size: 0.85rem;
+  font-weight: 600;
+  color: var(--accent);
+  margin-bottom: 0.35rem;
+}
+
+/* 选题论文标题 */
+.topic-card .topic-title {
+  font-family: 'STSong', 'Songti SC', 'Noto Serif SC', Georgia, serif;
+  font-size: clamp(1.05rem, 2vw, 1.2rem);
+  line-height: 1.6;
+  font-weight: 600;
+  margin-bottom: 0.75rem;
+  color: var(--foreground);
+}
+
+/* Info table */
+.topic-card table {
+  width: 100%;
+  border-collapse: collapse;
+  margin-top: 0.5rem;
+}
+.topic-card td {
+  padding: 0.35rem 0.6rem;
+  vertical-align: top;
+  border-bottom: 1px solid var(--border);
+  font-size: 0.95rem;
+  line-height: 1.7;
+}
+.topic-card tr:last-child td {
+  border-bottom: none;
+}
+.topic-card td:first-child {
+  font-weight: 600;
+  color: var(--muted);
+  font-size: 0.85rem;
+  width: 85px;
+  white-space: nowrap;
+  text-align: right;
+  padding-right: 0.75rem;
+}
+.topic-card td:last-child {
+  font-size: 0.95rem;
+  line-height: 1.7;
+}
+
+/* ====== Badge 标签 ====== */
+.badge {
+  display: inline-block;
+  padding: 0.2rem 0.6rem;
+  border-radius: 4px;
+  font-size: 0.8rem;
+  font-weight: 500;
+  background: var(--border);
+  color: var(--foreground);
+  white-space: nowrap;
+}
+
+/* 领域标签颜色 */
+.badge-industry { background: #fef3c7; color: #92400e; }
+.badge-macro { background: #dbeafe; color: #1e3a5f; }
+.badge-finance { background: #d1fae5; color: #065f46; }
+.badge-trade { background: #ede9fe; color: #5b21b6; }
+.badge-regional { background: #ffe4e6; color: #9f1239; }
+.badge-default { background: var(--border); color: var(--foreground); }
+
+@media (prefers-color-scheme: dark) {
+  .badge-industry { background: #78350f; color: #fde68a; }
+  .badge-macro { background: #1e3a5f; color: #93c5fd; }
+  .badge-finance { background: #064e3b; color: #6ee7b7; }
+  .badge-trade { background: #4c1d95; color: #c4b5fd; }
+  .badge-regional { background: #881337; color: #fecdd3; }
+  .badge-default { background: var(--border); color: var(--foreground); }
+}
+
+/* ====== 面包屑导航 ====== */
+.breadcrumb {
+  font-size: 0.85rem;
+  color: var(--muted);
+  margin-bottom: 1.25rem;
+  display: flex;
+  align-items: center;
+  gap: 0.4rem;
+  flex-wrap: wrap;
+}
+
+/* ====== 底部导航 ====== */
+.page-footer-nav {
+  margin-top: 2.5rem;
+  padding-top: 1.25rem;
+  border-top: 2px solid var(--divider);
+  display: flex;
+  justify-content: space-between;
+  font-size: 0.9rem;
+}
+
+/* ====== FilterBar ====== */
+.filter-bar {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.5rem;
+  margin-bottom: 1.75rem;
+}
+.filter-bar .filter-all {
+  font-size: 0.8rem;
+  padding: 0.25rem 0.65rem;
+  border-radius: 4px;
+  text-decoration: none;
+  transition: background 0.15s, color 0.15s;
+}
+
+/* ====== Meta block（引用块） ====== */
+.meta-block {
+  padding: 0.75rem 1rem;
+  margin: 1rem 0;
+  border-left: 3px solid var(--accent);
+  background: var(--card);
+  font-size: 0.9rem;
+  color: var(--muted);
+}
+.meta-block a {
+  color: var(--accent);
+  text-decoration: underline;
+}
+
+/* ====== 响应式 ====== */
+
+/* 平板及以下：适度缩小间距 */
+@media (max-width: 768px) {
+  .prose {
+    padding: 0 0.75rem;
+  }
+  .topic-card {
+    padding: 1rem 1.1rem;
+    border-left-width: 2px;
+  }
+  .topic-card td {
+    padding: 0.3rem 0.4rem;
+  }
+  .topic-card td:first-child {
+    width: 72px;
+    font-size: 0.8rem;
+    padding-right: 0.5rem;
+  }
+  .topic-card td:last-child {
+    font-size: 0.9rem;
+  }
+  .news-card {
+    padding: 0.85rem 0;
+  }
+}
+
+/* 手机端：info table 改为 block 布局 */
+@media (max-width: 480px) {
+  body {
+    font-size: 15px;
+  }
+  .prose h1 { font-size: 1.4rem; }
+  .prose h2 { font-size: 1.15rem; }
+  .prose h3 { font-size: 1.05rem; }
+
+  .topic-card {
+    padding: 0.85rem 0.9rem;
+    margin-bottom: 0.75rem;
+  }
+  .topic-card table,
+  .topic-card tbody,
+  .topic-card tr {
+    display: block;
+  }
+  .topic-card td {
+    display: block;
+    padding: 0.2rem 0;
+    border-bottom: none;
+  }
+  .topic-card td:first-child {
+    width: 100%;
+    text-align: left;
+    font-size: 0.8rem;
+    font-weight: 600;
+    color: var(--accent);
+    padding-bottom: 0;
+  }
+  .topic-card td:last-child {
+    font-size: 0.9rem;
+    padding-top: 0;
+    padding-bottom: 0.5rem;
+  }
+  .topic-card tr:last-child td:last-child {
+    padding-bottom: 0;
+  }
+  .news-card h2 {
+    font-size: 1.05rem;
+  }
+  .date-heading {
+    flex-direction: column;
+    gap: 0.25rem;
+  }
+  .filter-bar {
+    gap: 0.35rem;
+  }
+  .page-footer-nav {
+    flex-direction: column;
+    gap: 0.5rem;
+    text-align: center;
+  }
+}
