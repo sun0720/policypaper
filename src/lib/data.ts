@@ -13,6 +13,10 @@ const EXPORTS_DIR = path.join(process.cwd(), "data", "exports");
 let _cache: { exports: DailyExport[]; ts: number } | null = null;
 const CACHE_TTL = 60_000; // 1 分钟
 
+function getNewsFieldLabel(news: NewsData): string {
+  return news.subField ? `${news.economicField} — ${news.subField}` : news.economicField;
+}
+
 /** 获取所有已解析的每日导出数据（带缓存） */
 function getAllExports(): DailyExport[] {
   const now = Date.now();
@@ -73,7 +77,8 @@ export function getAllFields(): string[] {
   const fieldSet = new Set<string>();
   for (const exp of getAllExports()) {
     for (const news of exp.news) {
-      fieldSet.add(news.economicField);
+      const field = getNewsFieldLabel(news);
+      if (field) fieldSet.add(field);
     }
   }
   return Array.from(fieldSet).sort();
@@ -84,7 +89,7 @@ export function getByField(field: string): { news: NewsData; date: string }[] {
   const results: { news: NewsData; date: string }[] = [];
   for (const exp of getAllExports()) {
     for (const news of exp.news) {
-      if (news.economicField === field) {
+      if (getNewsFieldLabel(news) === field) {
         results.push({ news, date: exp.date });
       }
     }

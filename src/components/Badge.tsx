@@ -5,11 +5,11 @@ import React from "react";
 
 /** 领域颜色映射：根据 emoji 返回 Tailwind 色系 */
 function fieldColorClass(field: string): string {
-  if (field.includes("🏭")) return "badge-industry";
-  if (field.includes("📊") || field.includes("💹")) return "badge-macro";
-  if (field.includes("💰") || field.includes("🏦")) return "badge-finance";
-  if (field.includes("🌏") || field.includes("🌐")) return "badge-trade";
-  if (field.includes("🏘") || field.includes("🏙")) return "badge-regional";
+  if (field.includes("🏭") || field.includes("产业经济")) return "badge-industry";
+  if (field.includes("📊") || field.includes("💹") || field.includes("宏观")) return "badge-macro";
+  if (field.includes("💰") || field.includes("🏦") || field.includes("金融")) return "badge-finance";
+  if (field.includes("🌏") || field.includes("🌐") || field.includes("国际贸易") || field.includes("对外经济")) return "badge-trade";
+  if (field.includes("🏘") || field.includes("🏙") || field.includes("区域")) return "badge-regional";
   return "badge-default";
 }
 

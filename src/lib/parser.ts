@@ -20,6 +20,8 @@ export interface TopicData {
   dataSources: string;
   /** 创新点 */
   innovation: string;
+  /** 详细研究思路（🔬 研究思路 段落，5 个子节），可选 */
+  researchApproach?: string;
 }
 
 export interface NewsData {
@@ -33,6 +35,8 @@ export interface NewsData {
   economicField: string;
   /** 子领域，如 "消费与服务业" */
   subField: string;
+  /** 新闻正文全文 */
+  content: string;
   /** 5 个论文选题 */
   topics: TopicData[];
   /** 生成的 slug，用于详情页路由 */
@@ -56,34 +60,92 @@ export interface DailyExport {
 
 // ---------- helpers ----------
 
-/** 解析 YAML frontmatter（简单 KV 行） */
+/** 去掉简单 YAML 字符串包裹符 */
+function stripYamlString(value: string): string {
+  return value.trim().replace(/^["'](.*)["']$/, "$1");
+}
+
+/** 解析 YAML inline array: [a, "b", c] */
+function parseInlineArray(value: string): string[] {
+  return value
+    .slice(1, -1)
+    .split(",")
+    .map((s) => stripYamlString(s))
+    .filter(Boolean);
+}
+
+/** 解析 YAML frontmatter（覆盖当前导出文件使用的简单格式） */
 function parseFrontmatter(fm: string): Record<string, unknown> {
   const result: Record<string, unknown> = {};
-  for (const line of fm.split("\n")) {
-    const trimmed = line.trim();
+  const lines = fm.split("\n");
+
+  for (let i = 0; i < lines.length; i++) {
+    const trimmed = lines[i].trim();
     if (!trimmed) continue;
-    const colonIdx = trimmed.indexOf(":");
-    if (colonIdx === -1) continue;
-    const key = trimmed.slice(0, colonIdx).trim();
-    let value: unknown = trimmed.slice(colonIdx + 1).trim();
-    // 数组 [a, b, c]
-    if (typeof value === "string" && value.startsWith("[") && value.endsWith("]")) {
-      value = value
-        .slice(1, -1)
-        .split(",")
-        .map((s) => s.trim().replace(/^"(.*)"$/, "$1"));
+
+    const match = trimmed.match(/^([A-Za-z0-9_-]+):\s*(.*)$/);
+    if (!match) continue;
+
+    const key = match[1];
+    const rawValue = match[2].trim();
+
+    if (!rawValue) {
+      const items: string[] = [];
+      while (i + 1 < lines.length) {
+        const itemMatch = lines[i + 1].trim().match(/^-\s+(.+)$/);
+        if (!itemMatch) break;
+        items.push(stripYamlString(itemMatch[1]));
+        i++;
+      }
+      result[key] = items.length > 0 ? items : "";
+      continue;
     }
+
+    let value: unknown = stripYamlString(rawValue);
+    if (typeof value === "string" && value.startsWith("[") && value.endsWith("]")) {
+      value = parseInlineArray(value);
+    }
+
     result[key] = value;
   }
+
   return result;
+}
+
+function hasLeadingEmoji(value: string): boolean {
+  return /^[\p{Emoji_Presentation}\p{Extended_Pictographic}]/u.test(value.trim());
+}
+
+/** 为无 emoji 的一级领域补充稳定视觉标识 */
+function normalizeMainField(field: string): string {
+  const clean = field.trim();
+  if (!clean || hasLeadingEmoji(clean)) return clean;
+
+  if (clean.includes("产业经济")) return `🏭 ${clean}`;
+  if (clean.includes("国际贸易") || clean.includes("对外经济")) return `🌏 ${clean}`;
+  if (clean.includes("宏观")) return `📊 ${clean}`;
+  if (clean.includes("金融")) return `💰 ${clean}`;
+  if (clean.includes("区域")) return `🏙 ${clean}`;
+
+  return clean;
+}
+
+function formatFieldLabel(economicField: string, subField: string): string {
+  return subField ? `${economicField} — ${subField}` : economicField;
 }
 
 /** 从 "🏭 产业经济 — 消费与服务业" 提取 field 和 subField */
 function parseField(fieldText: string): { economicField: string; subField: string } {
-  const parts = fieldText.split("—").map((s) => s.trim());
-  const economicField = parts[0] || fieldText;
+  const clean = fieldText.replace(/\s+/g, " ").trim();
+  const parts = clean.split("—").map((s) => s.trim()).filter(Boolean);
+  const economicField = normalizeMainField(parts[0] || clean);
   const subField = parts.slice(1).join(" — ") || "";
   return { economicField, subField };
+}
+
+function normalizeFieldLabel(fieldText: string): string {
+  const parsed = parseField(fieldText);
+  return formatFieldLabel(parsed.economicField, parsed.subField);
 }
 
 /** 简单哈希函数 (djb2)，用于生成短 slug */
@@ -97,8 +159,42 @@ function simpleHash(str: string): string {
 
 /** 从新闻 URL 生成短 slug，避免中文编码后路径过长 */
 function generateSlug(url: string): string {
-  // 使用 URL 的哈希值作为 slug，短且唯一
+  const govContentId = url.match(/content_(\d+)\.htm/);
+  if (govContentId) return govContentId[1];
+
   return simpleHash(url).slice(0, 8);
+}
+
+/** 清理正文中的 HTML 片段和抓取残留 */
+function sanitizeContent(raw: string): string {
+  return raw
+    // 移除 HTML 标签
+    .replace(/<[^>]*>/g, "")
+    // 移除 HTML 实体
+    .replace(/&[a-z]+;/gi, "")
+    // 移除爬虫残留标记
+    .replace(/UCAP-CONTENT"?>/gi, "")
+    // 合并多个连续空行为两个空行
+    .replace(/\n{3,}/g, "\n\n")
+    .trim();
+}
+
+/**
+ * 从新闻正文中提取 📄 新闻正文 部分的内容
+ * 格式：**📄 新闻正文**\n\n（内容）\n\n### 🎓 论文选题
+ * 返回空字符串如果未找到内容段（向后兼容旧格式）
+ */
+function extractContent(body: string): string {
+  const match = body.match(/\*\*📄\s*新闻正文\*\*\s*\n([\s\S]*?)(?=\n###\s*🎓\s*论文选题|$)/);
+  if (!match) return "";
+  return sanitizeContent(match[1]);
+}
+
+/** 提取 🔬 研究思路 段落（从 **🔬 研究思路** 到块末尾） */
+function extractResearchApproach(block: string): string | undefined {
+  const match = block.match(/\*\*🔬\s*研究思路\*\*\s*\n([\s\S]*)/);
+  if (!match) return undefined;
+  return match[1].trim() || undefined;
 }
 
 /** 解析选题 Markdown 表格中的一行 */
@@ -119,47 +215,45 @@ function extractTableValue(markdown: string, keyPattern: RegExp): string {
   return "";
 }
 
+function stripLeadingTopicIcon(value: string): string {
+  return value.replace(/^[\s\p{Emoji_Presentation}\p{Extended_Pictographic}\uFE0F]+/u, "").trim();
+}
+
 /** 解析单个选题块（#### ... 到下一个 #### 或 --- 或结束） */
 function parseTopicBlock(block: string, order: number): TopicData | null {
   const lines = block.trim().split("\n");
   const headerLine = lines[0]?.trim() || "";
 
-  // 解析 "N. 📊 新古典视角 — 论文标题"
-  const headerMatch = headerLine.match(
-    /^\d+\.\s*(?:[\p{Emoji_Presentation}\p{Extended_Pictographic}]\s*)?(.+?) — (.+)$/u
-  );
-  if (!headerMatch) {
-    // 简化匹配：可能没有 emoji
-    const simpleMatch = headerLine.match(/^\d+\.\s*(.+?) — (.+)$/);
-    if (!simpleMatch) return null;
-    return {
-      sortOrder: order,
-      perspective: simpleMatch[1].trim(),
-      title: simpleMatch[2].trim(),
-      researchQuestion: extractTableValue(block, /\*\*研究问题\*\*/),
-      theoreticalFramework: extractTableValue(block, /\*\*理论框架\*\*/),
-      methodology: extractTableValue(block, /\*\*研究方法\*\*/),
-      dataSources: extractTableValue(block, /\*\*数据来源\*\*/),
-      innovation: extractTableValue(block, /\*\*创新点\*\*/),
-    };
-  }
+  // 支持 "1. ..." 和 "1.1 ..." 两种编号。
+  const header = headerLine.replace(/^\d+(?:\.\d+)*\.?\s*/, "");
+  const titleSeparator = header.match(/\s+—\s+/);
+  if (!titleSeparator || titleSeparator.index === undefined) return null;
+
+  const perspective = stripLeadingTopicIcon(header.slice(0, titleSeparator.index));
+  const title = header.slice(titleSeparator.index + titleSeparator[0].length).trim();
+  if (!perspective || !title) return null;
 
   return {
     sortOrder: order,
-    perspective: headerMatch[1].trim(),
-    title: headerMatch[2].trim(),
+    perspective,
+    title,
     researchQuestion: extractTableValue(block, /\*\*研究问题\*\*/),
     theoreticalFramework: extractTableValue(block, /\*\*理论框架\*\*/),
     methodology: extractTableValue(block, /\*\*研究方法\*\*/),
     dataSources: extractTableValue(block, /\*\*数据来源\*\*/),
     innovation: extractTableValue(block, /\*\*创新点\*\*/),
+    researchApproach: extractResearchApproach(block),
   };
+}
+
+function normalizeNewsTitle(title: string): string {
+  return title.replace(/^\d+\.\s*/, "").trim();
 }
 
 /** 解析单条新闻块 */
 function parseNewsBlock(block: string, fallbackDate: string): NewsData | null {
   const lines = block.trim().split("\n");
-  const title = lines[0]?.trim() || "";
+  const title = normalizeNewsTitle(lines[0]?.trim() || "");
   if (!title) return null;
 
   let economicField = "";
@@ -170,18 +264,23 @@ function parseNewsBlock(block: string, fallbackDate: string): NewsData | null {
   // 提取 blockquote 元数据
   const body = lines.slice(1).join("\n");
 
-  const fieldMatch = body.match(/📂\s*\*?\*?经济领域[：:]\s*(.+)/);
+  const fieldMatch = body.match(/^>\s*📂\s*\*{0,2}经济领域\*{0,2}\s*[：:]\s*(.+?)\s*$/m);
   if (fieldMatch) {
     const parsed = parseField(fieldMatch[1].trim());
     economicField = parsed.economicField;
     subField = parsed.subField;
   }
 
-  const dateMatch = body.match(/📅\s*\*?\*?发布日期[：:]\s*(\d{4}-\d{2}-\d{2})/);
+  const dateMatch = body.match(/^>\s*📅\s*\*{0,2}发布日期\*{0,2}\s*[：:]\s*(\d{4}-\d{2}-\d{2})/m);
   if (dateMatch) date = dateMatch[1];
 
-  const urlMatch = body.match(/🔗\s*\*?\*?原文链接[：:]\s*\[.*?\]\((.+?)\)/);
-  if (urlMatch) url = urlMatch[1];
+  const urlMatch = body.match(
+    /^>\s*🔗\s*\*{0,2}原文链接\*{0,2}\s*[：:]\s*(?:\[.*?\]\((https?:\/\/[^)\s]+)\)|(https?:\/\/\S+))/m
+  );
+  if (urlMatch) url = urlMatch[1] || urlMatch[2] || "";
+
+  // 提取新闻正文
+  const content = extractContent(body);
 
   // 解析选题
   const topics: TopicData[] = [];
@@ -197,9 +296,26 @@ function parseNewsBlock(block: string, fallbackDate: string): NewsData | null {
     }
   }
 
-  const slug = generateSlug(title);
+  const slug = generateSlug(url || title);
 
-  return { title, url, date, economicField, subField, topics, slug };
+  return { title, url, date, economicField, subField, content, topics, slug };
+}
+
+function stringValue(value: unknown): string {
+  return typeof value === "string" ? value.trim() : "";
+}
+
+function numberValue(...values: unknown[]): number | undefined {
+  for (const value of values) {
+    if (value === undefined || value === null || value === "") continue;
+    const num = Number(value);
+    if (Number.isFinite(num)) return num;
+  }
+  return undefined;
+}
+
+function uniqueValues(values: string[]): string[] {
+  return Array.from(new Set(values.filter(Boolean)));
 }
 
 /** 解析完整的每日导出 .md 文件 */
@@ -208,11 +324,8 @@ export function parseDailyExport(markdown: string): DailyExport | null {
   const fmMatch = markdown.match(/^---\n([\s\S]*?)\n---/);
   const fm = fmMatch ? parseFrontmatter(fmMatch[1]) : {};
 
-  const date = String(fm.date || "");
-  const fields = (Array.isArray(fm.fields) ? fm.fields : []) as string[];
-  const newsCount = Number(fm.news_count || 0);
-  const topicsCount = Number(fm.topics_count || 0);
-  const generatedAt = String(fm.generated_at || "");
+  const date = stringValue(fm.date);
+  const generatedAt = stringValue(fm.generated_at);
 
   // 去掉 frontmatter 后的正文
   const body = markdown.replace(/^---\n[\s\S]*?\n---/, "").trim();
@@ -232,6 +345,20 @@ export function parseDailyExport(markdown: string): DailyExport | null {
       news.push(parsed);
     }
   }
+
+  const fmFields = Array.isArray(fm.fields)
+    ? fm.fields.map(String)
+    : stringValue(fm.field)
+      ? [stringValue(fm.field)]
+      : [];
+  const fieldsFromFrontmatter = fmFields.map(normalizeFieldLabel);
+  const fieldsFromNews = news.map((n) => formatFieldLabel(n.economicField, n.subField));
+  const fields = uniqueValues(fieldsFromFrontmatter.length > 0 ? fieldsFromFrontmatter : fieldsFromNews);
+
+  const newsCount = numberValue(fm.news_count, fm.total_news) ?? news.length;
+  const topicsCount =
+    numberValue(fm.topics_count, fm.total_topics) ??
+    news.reduce((sum, n) => sum + n.topics.length, 0);
 
   return { date, fields, newsCount, topicsCount, generatedAt, news };
 }

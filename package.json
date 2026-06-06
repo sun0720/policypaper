@@ -5,7 +5,10 @@
   "scripts": {
     "dev": "next dev",
     "build": "next build",
-    "start": "next start"
+    "start": "next start",
+    "typecheck": "tsc --noEmit",
+    "validate:data": "node --no-warnings --experimental-strip-types scripts/validate-data.mjs",
+    "check": "npm run typecheck && npm run validate:data && npm run build"
   },
   "dependencies": {
     "next": "^16.0.0",

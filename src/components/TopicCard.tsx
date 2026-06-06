@@ -41,6 +41,11 @@ export function TopicCard({ topic, showOrder = true }: TopicCardProps) {
           )}
         </tbody>
       </table>
+
+      {/* 🔬 研究思路 */}
+      {topic.researchApproach && (
+        <ResearchApproach content={topic.researchApproach} />
+      )}
     </article>
   );
 }
@@ -52,4 +57,101 @@ function InfoRow({ label, value }: { label: string; value: string }) {
       <td>{value}</td>
     </tr>
   );
+}
+
+/**
+ * 渲染 🔬 研究思路 段落
+ * 按 **N. 标题** 拆分子节，处理段落、列表和方程块
+ */
+function ResearchApproach({ content }: { content: string }) {
+  // Split by **N. Title** pattern (at line start)
+  const sections = content.split(/\n(?=\*\*\d+\.\s+)/);
+
+  return (
+    <div className="research-approach">
+      {sections.map((section, i) => {
+        // Extract **N. Title** header
+        const titleMatch = section.match(/^\*\*(\d+\.\s+.+?)\*\*/);
+        const title = titleMatch ? titleMatch[1] : null;
+        const body = titleMatch
+          ? section.slice(titleMatch[0].length).trim()
+          : section.trim();
+
+        return (
+          <div key={i} className="research-approach-subsection">
+            {title && (
+              <div className="research-approach-subtitle">{title}</div>
+            )}
+            <ResearchBody content={body} />
+          </div>
+        );
+      })}
+    </div>
+  );
+}
+
+/** 渲染研究思路子节正文：处理段落、列表和方程块 */
+function ResearchBody({ content }: { content: string }) {
+  // Split on double newlines to separate logical blocks
+  const blocks = content.split(/\n\n/).filter(Boolean);
+
+  return (
+    <>
+      {blocks.map((block, i) => {
+        // 方程块：以缩进开头或含特殊字符的行
+        const lines = block.split("\n");
+        const isMathBlock =
+          lines.length >= 2 &&
+          lines.every((l) => /^[\s]*[A-Za-z0-9αβγδεθμσΣ_{}\[\]()=+\-*/<>,.^~′\s]+$/.test(l.trim()) && l.trim().length > 0);
+
+        if (isMathBlock) {
+          return (
+            <pre key={i} className="math-block">
+              {lines.join("\n")}
+            </pre>
+          );
+        }
+
+        // 列表块：以 - 或数字开头
+        if (
+          lines.every(
+            (l) => /^\s*(?:[-•]|\d+[.)])\s+/.test(l) || l.trim() === ""
+          )
+        ) {
+          return (
+            <ul key={i}>
+              {lines
+                .filter((l) => l.trim())
+                .map((l, j) => (
+                  <li key={j}>{l.replace(/^\s*(?:[-•]|\d+[.)])\s+/, "")}</li>
+                ))}
+            </ul>
+          );
+        }
+
+        // 普通段落
+        return (
+          <p key={i}>
+            {lines.map((line, j) => (
+              <React.Fragment key={j}>
+                {j > 0 && <br />}
+                {renderInline(line)}
+              </React.Fragment>
+            ))}
+          </p>
+        );
+      })}
+    </>
+  );
+}
+
+/** 渲染行内 bold 标记 */
+function renderInline(text: string): React.ReactNode {
+  const parts = text.split(/(\*\*.*?\*\*)/g);
+  return parts.map((part, i) => {
+    if (part.startsWith("**") && part.endsWith("**")) {
+      return <strong key={i}>{part.slice(2, -2)}</strong>;
+    }
+    return part;
+  });
 }

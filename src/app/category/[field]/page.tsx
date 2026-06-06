@@ -14,29 +14,33 @@ interface Props {
 }
 
 export function generateStaticParams() {
-  // 已知经济领域列表（与 data/exports 中的数据对应）
-  return [
-    "🏭 产业经济 — 消费与服务业",
-    "🌏 国际贸易与对外经济 — 自贸区与开放平台",
-    "🏭 产业经济 — 房地产与基建",
-    "🏭 产业经济 — 物流与交通",
-  ].map((f) => ({ field: encodeURIComponent(f) }));
+  return getAllFields().map((field) => ({ field: encodeURIComponent(field) }));
+}
+
+function decodeFieldParam(field: string): string {
+  try {
+    return decodeURIComponent(field);
+  } catch {
+    return field;
+  }
 }
 
 export async function generateMetadata({ params }: Props): Promise<Metadata> {
   const { field } = await params;
+  const decodedField = decodeFieldParam(field);
   return {
-    title: `${decodeURIComponent(field)} 论文选题 | EconTopic`,
-    description: `${decodeURIComponent(field)} 领域经济学论文选题`,
+    title: `${decodedField} 论文选题 | EconTopic`,
+    description: `${decodedField} 领域经济学论文选题`,
   };
 }
 
 export default async function CategoryPage({ params }: Props) {
   const { field } = await params;
   const allFields = getAllFields();
+  const decodedField = decodeFieldParam(field);
 
   const matchedField = allFields.find(
-    (f) => encodeURIComponent(f) === field
+    (f) => f === decodedField || encodeURIComponent(f) === field
   );
 
   if (!matchedField) notFound();
@@ -72,7 +76,7 @@ export default async function CategoryPage({ params }: Props) {
             <div className="date-heading">
               <h2 style={{ margin: 0 }}>
                 <a href={`/date/${date}`} style={{ color: "inherit", textDecoration: "none" }}>
-                  📅 {date}
+                  {date}
                 </a>
               </h2>
             </div>

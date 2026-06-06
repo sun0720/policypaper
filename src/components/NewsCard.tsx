@@ -15,33 +15,36 @@ interface NewsCardProps {
 export function NewsCard({ news, date }: NewsCardProps) {
   return (
     <article className="news-card">
-      {/* 领域标签 + 日期 */}
+      {/* 领域标签 */}
       <div className="news-meta">
         <FieldBadgeSm field={news.economicField} />
-        <span>{date}</span>
       </div>
 
-      {/* 新闻标题 */}
-      <h2>
+      {/* 新闻标题 + 原文链接 */}
+      <h2 className="news-title-row">
         <Link
           href={`/news/${news.slug}`}
-          style={{ color: "var(--foreground)", textDecoration: "none" }}
+          style={{ textDecoration: "none" }}
         >
           {news.title}
         </Link>
-      </h2>
-
-      {/* 原文链接 */}
-      <div className="news-source">
         <a
+          className="news-source-inline"
           href={news.url}
           target="_blank"
           rel="noopener noreferrer"
-          style={{ color: "var(--accent)", textDecoration: "underline" }}
         >
-          原文链接 →
+          → 原文
         </a>
-      </div>
+      </h2>
+
+      {/* 正文摘要 */}
+      {news.content && (
+        <p className="news-excerpt">
+          {news.content.slice(0, 150)}
+          {news.content.length > 150 ? "…" : ""}
+        </p>
+      )}
 
       {/* 选题摘要（可折叠） */}
       <details>

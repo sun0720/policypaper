@@ -73,40 +73,19 @@ export default async function NewsDetailPage({ params }: Props) {
         </div>
       </header>
 
-      {/* === 选题内页目录（快速跳转） === */}
-      <nav
-        style={{
-          background: "var(--card)",
-          border: "1px solid var(--border)",
-          borderRadius: "6px",
-          padding: "1rem 1.25rem",
-          marginBottom: "1.5rem",
-          fontSize: "0.9rem",
-        }}
-      >
-        <div style={{ fontWeight: 600, marginBottom: "0.5rem", color: "var(--accent)" }}>
-          📑 本页目录
-        </div>
-        <ol style={{ margin: 0, paddingLeft: "1.25rem", display: "flex", flexDirection: "column", gap: "0.3rem" }}>
-          {news.topics.map((t) => (
-            <li key={t.sortOrder}>
-              <a
-                href={`#topic-${t.sortOrder}`}
-                style={{
-                  color: "var(--foreground)",
-                  textDecoration: "none",
-                  transition: "color 0.15s",
-                }}
-              >
-                <span style={{ color: "var(--muted)", fontSize: "0.8rem" }}>
-                  {t.perspective}：
-                </span>
-                {t.title.length > 48 ? t.title.slice(0, 48) + "…" : t.title}
-              </a>
-            </li>
-          ))}
-        </ol>
-      </nav>
+      {/* === 新闻正文 === */}
+      {news.content && (
+        <section id="news-content" className="news-content-section">
+          <h2>📄 新闻正文</h2>
+          <div className="news-content-body">
+            {news.content.split("\n").map((paragraph, i) =>
+              paragraph.trim() ? (
+                <p key={i}>{paragraph}</p>
+              ) : null
+            )}
+          </div>
+        </section>
+      )}
 
       {/* === 论文选题区 === */}
       <section>

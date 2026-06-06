@@ -1,0 +1,86 @@
+[
+  {
+    "title": "全国麦收高效有序推进",
+    "url": "https://www.gov.cn/yaowen/liebiao/202606/content_7071034.htm",
+    "date": "2026-06-03",
+    "economic": true,
+    "category": {
+      "field": "产业经济",
+      "sub_field": "农业经济"
+    },
+    "relevance": 2,
+    "rationale": "全国夏粮收割进度通报，涉及粮食安全与农业生产经济，经济是重要组成部分"
+  },
+  {
+    "title": "长线外资看好中国 持续加码硬科技",
+    "url": "https://www.gov.cn/yaowen/liebiao/202606/content_7071033.htm",
+    "date": "2026-06-03",
+    "economic": true,
+    "category": {
+      "field": "国际贸易",
+      "sub_field": "外资与对外投资"
+    },
+    "relevance": 3,
+    "rationale": "核心报道外资持续加码中国硬科技领域，涉及外商投资趋势与产业资本流向"
+  },
+  {
+    "title": "图表：2026年5月份中国物流业景气指数为50.3%",
+    "url": "https://www.gov.cn/zhengce/jiedu/tujie/202606/content_7071030.htm",
+    "date": "2026-06-03",
+    "economic": true,
+    "category": {
+      "field": "产业经济",
+      "sub_field": "物流与交通"
+    },
+    "relevance": 3,
+    "rationale": "核心发布物流业景气指数图表，重要经济先行指标的可视化解读"
+  },
+  {
+    "title": "166家外资企业获增值电信业务经营试点批复",
+    "url": "https://www.gov.cn/lianbo/202606/content_7071028.htm",
+    "date": "2026-06-03",
+    "economic": true,
+    "category": {
+      "field": "国际贸易",
+      "sub_field": "外资与对外投资"
+    },
+    "relevance": 3,
+    "rationale": "核心报道电信领域扩大对外开放、外资准入试点批复，涉及外资营商环境"
+  },
+  {
+    "title": "需求重回扩张区间——5月份我国物流业相关数据分析",
+    "url": "https://www.gov.cn/yaowen/liebiao/202606/content_7070976.htm",
+    "date": "2026-06-03",
+    "economic": true,
+    "category": {
+      "field": "产业经济",
+      "sub_field": "物流与交通"
+    },
+    "relevance": 3,
+    "rationale": "核心分析物流需求回升至扩张区间，反映经济复苏态势的重要信号"
+  },
+  {
+    "title": "5月份中国物流业景气指数为50.3%",
+    "url": "https://www.gov.cn/yaowen/liebiao/202606/content_7070974.htm",
+    "date": "2026-06-03",
+    "economic": true,
+    "category": {
+      "field": "产业经济",
+      "sub_field": "物流与交通"
+    },
+    "relevance": 3,
+    "rationale": "核心报道物流业景气指数，是反映宏观经济运行的重要先行指标"
+  },
+  {
+    "title": "以开放创新应对全球贸易变局——践行习近平经济思想推动贸易强国建设迈出新步伐",
+    "url": "https://www.gov.cn/yaowen/liebiao/202606/content_7070964.htm",
+    "date": "2026-06-03",
+    "economic": true,
+    "category": {
+      "field": "国际贸易",
+      "sub_field": "贸易与关税"
+    },
+    "relevance": 3,
+    "rationale": "核心论述贸易强国建设战略，以开放创新应对全球贸易变局，属国际贸易顶层政策"
+  }
+]

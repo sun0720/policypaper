@@ -36,7 +36,7 @@ export default async function DatePage({ params }: Props) {
       <Breadcrumb items={[{ label: "首页", href: "/" }, { label: date }]} />
 
       <header style={{ marginBottom: "2rem" }}>
-        <h1>📅 {date}</h1>
+        <h1>{date}</h1>
         <div style={{ display: "flex", flexWrap: "wrap", gap: "0.75rem", fontSize: "0.9rem", color: "var(--muted)" }}>
           <span><strong>{daily.newsCount}</strong> 条经济新闻</span>
           <span><strong>{daily.topicsCount}</strong> 个论文选题</span>

@@ -1,0 +1,80 @@
+[
+  {
+    "title": "科技赋能夏收夏种 助力粮食稳产丰收",
+    "sub_title": "",
+    "url": "https://www.gov.cn/yaowen/liebiao/202606/content_7070836.htm",
+    "date": "2026-06-01",
+    "economic": true,
+    "category": {
+      "field": "产业经济",
+      "sub_field": "农业经济"
+    },
+    "relevance": 2,
+    "rationale": "报道科技手段助力粮食生产稳产丰收，涉及粮食安全和农业现代化，经济是重要组成部分"
+  },
+  {
+    "title": "【视频】《求是》杂志发表习近平总书记重要文章《前瞻布局和发展未来产业》",
+    "sub_title": "",
+    "url": "https://tv.cctv.com/2026/06/01/VIDEVfdberd1ogtuBx9rpYFO260601.shtml",
+    "date": "2026-06-01",
+    "economic": true,
+    "category": {
+      "field": "产业经济",
+      "sub_field": "制造业与工业"
+    },
+    "relevance": 3,
+    "rationale": "核心聚焦未来产业前瞻布局，是最高层级的产业政策信号，属于产业经济核心议题"
+  },
+  {
+    "title": "我国优化运输结构调整成效明显 去年集装箱多式联运量同比增长超15%",
+    "sub_title": "",
+    "url": "https://www.gov.cn/yaowen/liebiao/202606/content_7070774.htm",
+    "date": "2026-06-01",
+    "economic": true,
+    "category": {
+      "field": "产业经济",
+      "sub_field": "物流与交通"
+    },
+    "relevance": 3,
+    "rationale": "核心报道运输结构调整成效及集装箱多式联运增长数据，是物流交通领域重要经济指标"
+  },
+  {
+    "title": "李强签署国务院令 公布《国务院关于对外投资的规定》",
+    "sub_title": "",
+    "url": "https://www.gov.cn/yaowen/liebiao/202606/content_7070766.htm",
+    "date": "2026-06-01",
+    "economic": true,
+    "category": {
+      "field": "国际贸易",
+      "sub_field": "外资与对外投资"
+    },
+    "relevance": 3,
+    "rationale": "国务院令发布对外投资管理规定，是跨境投资领域核心经济政策文件"
+  },
+  {
+    "title": "国务院关于对外投资的规定",
+    "sub_title": "",
+    "url": "https://www.gov.cn/zhengce/content/202606/content_7070755.htm",
+    "date": "2026-06-01",
+    "economic": true,
+    "category": {
+      "field": "国际贸易",
+      "sub_field": "外资与对外投资"
+    },
+    "relevance": 3,
+    "rationale": "《国务院关于对外投资的规定》正文全文，是中国对外投资管理的核心法规文件"
+  },
+  {
+    "title": "前4月全国社会物流总额同比增长5.5% 即时零售交易额增长29.2%",
+    "sub_title": "",
+    "url": "https://www.gov.cn/yaowen/liebiao/202606/content_7070749.htm",
+    "date": "2026-06-01",
+    "economic": true,
+    "category": {
+      "field": "产业经济",
+      "sub_field": "物流与交通"
+    },
+    "relevance": 3,
+    "rationale": "核心报道社会物流总额和即时零售交易额等关键经济数据，物流运行态势和消费新业态指标"
+  }
+]
