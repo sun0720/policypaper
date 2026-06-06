@@ -10,11 +10,8 @@ export default function HomePage() {
 
   return (
     <div className="content-layout">
-      {/* 左侧日期导航 — 与右侧内容区并列 */}
-      <DateSidebar dates={dates} />
-
-      {/* 右侧：Hero + 主内容 */}
-      <div className="content-main">
+      {/* 左侧：Hero + 日期导航 */}
+      <div className="sidebar-column">
         <section className="page-hero">
           <h1>经济学论文选题</h1>
           <p>
@@ -22,6 +19,11 @@ export default function HomePage() {
           </p>
         </section>
 
+        <DateSidebar dates={dates} />
+      </div>
+
+      {/* 右侧：主内容 */}
+      <div className="content-main">
         <section>
           {dates.length === 0 && (
             <p style={{ color: "var(--muted)", textAlign: "center", padding: "3rem 0" }}>

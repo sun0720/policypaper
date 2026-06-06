@@ -125,6 +125,24 @@ body {
   min-width: 0;
 }
 
+/* ====== 左侧栏（Hero + 日期导航） ====== */
+.sidebar-column {
+  width: 160px;
+  flex-shrink: 0;
+  position: sticky;
+  top: 5.5rem;
+  max-height: calc(100vh - 5.5rem - 2rem);
+  overflow-y: auto;
+}
+
+/* 侧边栏内部的 DateSidebar 不需要独立 sticky 和宽度 */
+.sidebar-column .date-sidebar {
+  width: auto;
+  position: static;
+  max-height: none;
+  overflow-y: visible;
+}
+
 /* ====== 左侧日期导航栏 ====== */
 .date-sidebar {
   width: 140px;
@@ -191,27 +209,27 @@ body {
   color: var(--accent);
 }
 
-/* ====== 页面级模块间距 ====== */
+/* ====== 页面 Hero 区域 ====== */
 .page-hero {
-  padding: 0.5rem 0 2rem 0;
-  margin-bottom: 2rem;
+  padding: 0.25rem 0 1rem 0;
+  margin-bottom: 1rem;
   border-bottom: 1px solid var(--divider);
   position: relative;
-  text-align: center;
+  text-align: left;
 }
 .page-hero h1 {
   font-family: "Microsoft YaHei", "PingFang SC", sans-serif;
-  margin-bottom: 0.75rem;
-  font-size: clamp(1.6rem, 3.5vw, 2.2rem);
+  margin-bottom: 0.5rem;
+  font-size: 1.1rem;
   font-weight: 800;
+  line-height: 1.5;
 }
 .page-hero p {
-  max-width: 680px;
-  margin-left: auto;
-  margin-right: auto;
   color: var(--muted);
-  font-size: 1.05rem;
-  line-height: 1.85;
+  font-size: 0.78rem;
+  line-height: 1.65;
+  max-width: none;
+  margin: 0;
 }
 .date-section {
   margin-bottom: 2rem;        /* 原 2.5rem → 2rem */
@@ -658,6 +676,16 @@ a:focus-visible {
     flex-direction: column;
     gap: 1rem;
   }
+  .sidebar-column {
+    width: 100%;
+    position: static;
+    max-height: none;
+  }
+  .sidebar-column .date-sidebar {
+    width: 100%;
+    position: static;
+    max-height: none;
+  }
   .date-sidebar {
     width: 100%;
     position: static;
@@ -673,6 +701,21 @@ a:focus-visible {
     align-items: baseline;
     gap: 0.4rem;
     padding: 0.3rem 0.55rem;
+  }
+  /* 窄屏 Hero 恢复居中 */
+  .page-hero {
+    text-align: center;
+    padding: 0.5rem 0 1.25rem 0;
+    margin-bottom: 1rem;
+  }
+  .page-hero h1 {
+    font-size: clamp(1.4rem, 3.5vw, 1.8rem);
+  }
+  .page-hero p {
+    font-size: 0.95rem;
+    max-width: 480px;
+    margin-left: auto;
+    margin-right: auto;
   }
 }
 
