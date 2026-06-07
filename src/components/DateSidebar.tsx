@@ -29,7 +29,7 @@ export function DateSidebar({ dates, activeDate }: DateSidebarProps) {
                 href={`/date/${d.date}`}
                 className={`date-sidebar-link${d.date === activeDate ? " active" : ""}`}
               >
-                <span className="date-sidebar-date">{d.date.slice(5)}</span>
+                <span className="date-sidebar-date">{d.date}</span>
                 <span className="date-sidebar-meta">
                   {d.newsCount} 条 · {d.topicsCount} 题
                 </span>

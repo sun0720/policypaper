@@ -193,7 +193,7 @@ body {
 }
 
 .date-sidebar-date {
-  font-size: 1.1rem;
+  font-size: 0.95rem;
   font-weight: 500;
   line-height: 1.5;
 }
@@ -225,7 +225,7 @@ body {
 }
 .page-hero p {
   color: var(--muted);
-  font-size: 1.05rem;
+  font-size: 0.9rem;
   line-height: 1.65;
   max-width: 600px;
   margin: 0 auto;
