@@ -125,10 +125,14 @@ body {
   min-width: 0;
 }
 
-/* ====== 左侧栏（Hero + 日期导航） ====== */
+/* ====== 左侧栏（日期导航） ====== */
 .sidebar-column {
   width: 160px;
   flex-shrink: 0;
+  position: sticky;
+  top: 5.5rem;
+  max-height: calc(100vh - 5.5rem - 2rem);
+  overflow-y: auto;
 }
 
 /* 侧边栏内部的 DateSidebar — 随侧边栏自然滚动 */
@@ -205,26 +209,25 @@ body {
   color: var(--accent);
 }
 
-/* ====== 页面 Hero 区域 ====== */
+/* ====== 页面 Hero 区域 — 全宽 ====== */
 .page-hero {
-  padding: 0.25rem 0 1rem 0;
-  margin-bottom: 1rem;
+  padding: 0.25rem 0 1.25rem 0;
+  margin-bottom: 1.5rem;
   border-bottom: 1px solid var(--divider);
-  position: relative;
   text-align: left;
 }
 .page-hero h1 {
   font-family: "Microsoft YaHei", "PingFang SC", sans-serif;
-  margin-bottom: 0.5rem;
-  font-size: 1.1rem;
+  margin-bottom: 0.35rem;
+  font-size: clamp(1.4rem, 3vw, 1.75rem);
   font-weight: 800;
-  line-height: 1.5;
+  line-height: 1.4;
 }
 .page-hero p {
   color: var(--muted);
-  font-size: 0.78rem;
+  font-size: 0.9rem;
   line-height: 1.65;
-  max-width: none;
+  max-width: 600px;
   margin: 0;
 }
 .date-section {
