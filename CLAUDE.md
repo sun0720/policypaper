@@ -27,7 +27,8 @@
 ## 规则
 
 - 文档使用中文，文件名和代码标识符使用英文
-- 修改代码后，自动提交 Git 并推送到远程仓库触发部署
+- 修改代码后，自动提交 Git 并部署到 Cloudflare Pages
+- 部署命令：`wrangler pages deploy out/`（需先 `npm run build` 生成静态导出）
 - 敏感信息（API Key、数据库密码等）存 `.env.local`，不入 Git
 - 代码注释使用中文，便于经济学背景人员理解
 - 每次重大改动后更新 CHANGELOG
@@ -38,8 +39,8 @@
 - 前端：Next.js 16 + shadcn/ui + Tailwind CSS
 - 数据库：Vercel Postgres（Neon）或 Supabase
 - AI 服务：Claude API
-- 定时任务：Vercel Cron Jobs
-- 部署：Vercel
+- 定时任务：Vercel Cron Jobs 或 Cloudflare Workers
+- 部署：Cloudflare Pages（域名 policypaper.pages.dev）
 
 ## 外部资源
 
