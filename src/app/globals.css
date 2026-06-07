@@ -129,13 +129,9 @@ body {
 .sidebar-column {
   width: 160px;
   flex-shrink: 0;
-  position: sticky;
-  top: 5.5rem;
-  max-height: calc(100vh - 5.5rem - 2rem);
-  overflow-y: auto;
 }
 
-/* 侧边栏内部的 DateSidebar 不需要独立 sticky 和宽度 */
+/* 侧边栏内部的 DateSidebar — 随侧边栏自然滚动 */
 .sidebar-column .date-sidebar {
   width: auto;
   position: static;
