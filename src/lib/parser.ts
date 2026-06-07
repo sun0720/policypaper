@@ -167,16 +167,39 @@ function generateSlug(url: string): string {
 
 /** 清理正文中的 HTML 片段和抓取残留 */
 function sanitizeContent(raw: string): string {
-  return raw
+  let cleaned = raw
     // 移除 HTML 标签
     .replace(/<[^>]*>/g, "")
     // 移除 HTML 实体
     .replace(/&[a-z]+;/gi, "")
     // 移除爬虫残留标记
-    .replace(/UCAP-CONTENT"?>/gi, "")
-    // 合并多个连续空行为两个空行
-    .replace(/\n{3,}/g, "\n\n")
-    .trim();
+    .replace(/UCAP-CONTENT"?>/gi, "");
+
+  // ── 移除 gov.cn 网页抓取残留 ──
+
+  // 1. 「我要纠错」及责任编辑行
+  cleaned = cleaned.replace(/【我要纠错】.*/g, "");
+  cleaned = cleaned.replace(/^\s*责任编辑[：:]\s*\S+\s*$/gm, "");
+
+  // 2. 「相关稿件」及之后所有内容
+  cleaned = cleaned.replace(/^\s*相关稿件[\s\S]*$/m, "");
+
+  // 3. CSS 代码块：匹配包含 { ... } 的样式行
+  cleaned = cleaned
+    .replace(/^\s*\.[a-zA-Z_][\w-]*\s*\{/gm, "")    // .classname {
+    .replace(/^\s*#\w[\w-]*\s*\{/gm, "")              // #id {
+    .replace(/^\s*[a-z-]+\s*:\s*[^;]+;\s*$/gm, "")    // property: value;
+    .replace(/^\s*\}\s*$/gm, "");                      // }
+
+  // 4. gov.cn 页脚导航链接（含竖线分隔符的长行）
+  cleaned = cleaned
+    .replace(/^\s*(?:链接[：:]\s*)?(?:全国人大|全国政协|国家监察委员会?|最高人民法院|最高人民检察院|国务院|中国政府网)(?:\s*\|\s*(?:全国人大|全国政协|国家监察委员会?|最高人民法院|最高人民检察院|国务院|中国政府网))*\s*$/gm, "")
+    .replace(/^\s*\|\s*$/gm, "");                     // 孤立的竖线
+
+  // 5. 纯空白行压缩
+  cleaned = cleaned.replace(/\n{3,}/g, "\n\n");
+
+  return cleaned.trim();
 }
 
 /**
