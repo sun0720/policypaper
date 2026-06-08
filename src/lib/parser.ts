@@ -3,6 +3,41 @@
  * 从 paper-topic-analyzer 产出的 .md 文件中提取结构化数据
  */
 
+// ═══════════════════════════════════════════════════════════
+// 预编译正则（模块级常量，避免每次调用重复编译）
+// ═══════════════════════════════════════════════════════════
+
+const RE_HTML_TAG = /<[^>]*>/g;
+const RE_HTML_ENTITY = /&[a-z]+;/gi;
+const RE_CRAWLER_MARKER = /UCAP-CONTENT"?>/gi;
+const RE_REMOVE_CORRECT = /【我要纠错】.*/g;
+const RE_EDITOR_LINE = /^\s*责任编辑[：:]\s*\S+\s*$/gm;
+const RE_RELATED_ARTICLES = /^\s*相关稿件[\s\S]*$/m;
+const RE_CSS_CLASS = /^\s*\.[a-zA-Z_][\w-]*\s*\{/gm;
+const RE_CSS_ID = /^\s*#\w[\w-]*\s*\{/gm;
+const RE_CSS_PROP = /^\s*[a-z-]+\s*:\s*[^;]+;\s*$/gm;
+const RE_CSS_BRACE = /^\s*\}\s*$/gm;
+const RE_GOV_FOOTER = /^\s*(?:链接[：:]\s*)?(?:全国人大|全国政协|国家监察委员会?|最高人民法院|最高人民检察院|国务院|中国政府网)(?:\s*\|\s*(?:全国人大|全国政协|国家监察委员会?|最高人民法院|最高人民检察院|国务院|中国政府网))*\s*$/gm;
+const RE_ORPHAN_PIPE = /^\s*\|\s*$/gm;
+const RE_MULTI_NEWLINE = /\n{3,}/g;
+const RE_LEADING_EMOJI = /^[\s\p{Emoji_Presentation}\p{Extended_Pictographic}️]+/u;
+const RE_NEWS_NUMBER_PREFIX = /^\d+\.\s*/;
+const RE_SECTION_HEADER = /\n(?=##\s)/;
+const RE_TOPIC_SPLIT = /\n####\s+/;
+const RE_BOLD_INLINE = /(\*\*.*?\*\*)/g;
+const RE_BOLD_CELL = /\*\*(.+?)\*\*/;
+const RE_TOPIC_HEADER = /^\d+(?:\.\d+)*\.?\s*/;
+const RE_CONTENT_HEADER = /\*\*📄\s*新闻正文\*\*\s*\n([\s\S]*?)(?=\n###\s*🎓\s*论文选题|$)/;
+const RE_RESEARCH_APPROACH = /\*\*🔬\s*研究思路\*\*\s*\n([\s\S]*)/;
+const RE_YAML_KEY_VALUE = /^([A-Za-z0-9_-]+):\s*(.*)$/;
+const RE_YAML_LIST_ITEM = /^-\s+(.+)$/;
+const RE_QUOTED_STRING = /^["'](.*)["']$/;
+const RE_FRONTMATTER = /^---\n([\s\S]*?)\n---/;
+const RE_MULTI_SPACE = /\s+/g;
+const RE_PIPE_COUNT = /\|/g;
+const RE_URL_CONTENT_ID = /content_(\d+)\.htm/;
+const RE_NON_URL_CHARS = /[^a-zA-Z0-9]/g;
+
 export interface TopicData {
   /** 选题序号 (1-5) */
   sortOrder: number;
@@ -62,7 +97,7 @@ export interface DailyExport {
 
 /** 去掉简单 YAML 字符串包裹符 */
 function stripYamlString(value: string): string {
-  return value.trim().replace(/^["'](.*)["']$/, "$1");
+  return value.trim().replace(RE_QUOTED_STRING, "$1");
 }
 
 /** 解析 YAML inline array: [a, "b", c] */
@@ -83,7 +118,7 @@ function parseFrontmatter(fm: string): Record<string, unknown> {
     const trimmed = lines[i].trim();
     if (!trimmed) continue;
 
-    const match = trimmed.match(/^([A-Za-z0-9_-]+):\s*(.*)$/);
+    const match = trimmed.match(RE_YAML_KEY_VALUE);
     if (!match) continue;
 
     const key = match[1];
@@ -92,7 +127,7 @@ function parseFrontmatter(fm: string): Record<string, unknown> {
     if (!rawValue) {
       const items: string[] = [];
       while (i + 1 < lines.length) {
-        const itemMatch = lines[i + 1].trim().match(/^-\s+(.+)$/);
+        const itemMatch = lines[i + 1].trim().match(RE_YAML_LIST_ITEM);
         if (!itemMatch) break;
         items.push(stripYamlString(itemMatch[1]));
         i++;
@@ -113,7 +148,7 @@ function parseFrontmatter(fm: string): Record<string, unknown> {
 }
 
 function hasLeadingEmoji(value: string): boolean {
-  return /^[\p{Emoji_Presentation}\p{Extended_Pictographic}]/u.test(value.trim());
+  return RE_LEADING_EMOJI.test(value.trim());
 }
 
 /** 为无 emoji 的一级领域补充稳定视觉标识 */
@@ -136,7 +171,7 @@ function formatFieldLabel(economicField: string, subField: string): string {
 
 /** 从 "🏭 产业经济 — 消费与服务业" 提取 field 和 subField */
 function parseField(fieldText: string): { economicField: string; subField: string } {
-  const clean = fieldText.replace(/\s+/g, " ").trim();
+  const clean = fieldText.replace(RE_MULTI_SPACE, " ").trim();
   const parts = clean.split("—").map((s) => s.trim()).filter(Boolean);
   const economicField = normalizeMainField(parts[0] || clean);
   const subField = parts.slice(1).join(" — ") || "";
@@ -159,45 +194,28 @@ function simpleHash(str: string): string {
 
 /** 从新闻 URL 生成短 slug，避免中文编码后路径过长 */
 function generateSlug(url: string): string {
-  const govContentId = url.match(/content_(\d+)\.htm/);
+  const govContentId = url.match(RE_URL_CONTENT_ID);
   if (govContentId) return govContentId[1];
 
   return simpleHash(url).slice(0, 8);
 }
 
-/** 清理正文中的 HTML 片段和抓取残留 */
+/** 清理正文中的 HTML 片段和抓取残留（使用预编译正则） */
 function sanitizeContent(raw: string): string {
   let cleaned = raw
-    // 移除 HTML 标签
-    .replace(/<[^>]*>/g, "")
-    // 移除 HTML 实体
-    .replace(/&[a-z]+;/gi, "")
-    // 移除爬虫残留标记
-    .replace(/UCAP-CONTENT"?>/gi, "");
-
-  // ── 移除 gov.cn 网页抓取残留 ──
-
-  // 1. 「我要纠错」及责任编辑行
-  cleaned = cleaned.replace(/【我要纠错】.*/g, "");
-  cleaned = cleaned.replace(/^\s*责任编辑[：:]\s*\S+\s*$/gm, "");
-
-  // 2. 「相关稿件」及之后所有内容
-  cleaned = cleaned.replace(/^\s*相关稿件[\s\S]*$/m, "");
-
-  // 3. CSS 代码块：匹配包含 { ... } 的样式行
-  cleaned = cleaned
-    .replace(/^\s*\.[a-zA-Z_][\w-]*\s*\{/gm, "")    // .classname {
-    .replace(/^\s*#\w[\w-]*\s*\{/gm, "")              // #id {
-    .replace(/^\s*[a-z-]+\s*:\s*[^;]+;\s*$/gm, "")    // property: value;
-    .replace(/^\s*\}\s*$/gm, "");                      // }
-
-  // 4. gov.cn 页脚导航链接（含竖线分隔符的长行）
-  cleaned = cleaned
-    .replace(/^\s*(?:链接[：:]\s*)?(?:全国人大|全国政协|国家监察委员会?|最高人民法院|最高人民检察院|国务院|中国政府网)(?:\s*\|\s*(?:全国人大|全国政协|国家监察委员会?|最高人民法院|最高人民检察院|国务院|中国政府网))*\s*$/gm, "")
-    .replace(/^\s*\|\s*$/gm, "");                     // 孤立的竖线
-
-  // 5. 纯空白行压缩
-  cleaned = cleaned.replace(/\n{3,}/g, "\n\n");
+    .replace(RE_HTML_TAG, "")
+    .replace(RE_HTML_ENTITY, "")
+    .replace(RE_CRAWLER_MARKER, "")
+    .replace(RE_REMOVE_CORRECT, "")
+    .replace(RE_EDITOR_LINE, "")
+    .replace(RE_RELATED_ARTICLES, "")
+    .replace(RE_CSS_CLASS, "")
+    .replace(RE_CSS_ID, "")
+    .replace(RE_CSS_PROP, "")
+    .replace(RE_CSS_BRACE, "")
+    .replace(RE_GOV_FOOTER, "")
+    .replace(RE_ORPHAN_PIPE, "")
+    .replace(RE_MULTI_NEWLINE, "\n\n");
 
   return cleaned.trim();
 }
@@ -208,29 +226,32 @@ function sanitizeContent(raw: string): string {
  * 返回空字符串如果未找到内容段（向后兼容旧格式）
  */
 function extractContent(body: string): string {
-  const match = body.match(/\*\*📄\s*新闻正文\*\*\s*\n([\s\S]*?)(?=\n###\s*🎓\s*论文选题|$)/);
+  const match = body.match(RE_CONTENT_HEADER);
   if (!match) return "";
   return sanitizeContent(match[1]);
 }
 
 /** 提取 🔬 研究思路 段落（从 **🔬 研究思路** 到块末尾） */
 function extractResearchApproach(block: string): string | undefined {
-  const match = block.match(/\*\*🔬\s*研究思路\*\*\s*\n([\s\S]*)/);
+  const match = block.match(RE_RESEARCH_APPROACH);
   if (!match) return undefined;
   return match[1].trim() || undefined;
 }
 
-/** 单次遍历解析选题 Markdown 表格的所有字段 */
+/** 单次遍历解析选题 Markdown 表格的所有字段（使用预编译正则） */
 function extractTableFields(markdown: string): Record<string, string> {
   const fields: Record<string, string> = {};
   const lines = markdown.split("\n");
   for (const line of lines) {
-    const pipeCount = (line.match(/\|/g) || []).length;
+    // 快速跳过：不含至少 2 个竖线的行不是表格行
+    let pipeCount = 0;
+    for (let i = 0; i < line.length; i++) {
+      if (line[i] === "|") pipeCount++;
+    }
     if (pipeCount < 2) continue;
     const cells = line.split("|").map((c) => c.trim());
-    // cells[0] 空, cells[1] **key**, cells[2] value, cells[3] 空
     const keyCell = cells[1] || "";
-    const keyMatch = keyCell.match(/\*\*(.+?)\*\*/);
+    const keyMatch = keyCell.match(RE_BOLD_CELL);
     if (keyMatch) {
       fields[keyMatch[1]] = cells[2] || "";
     }
@@ -239,7 +260,7 @@ function extractTableFields(markdown: string): Record<string, string> {
 }
 
 function stripLeadingTopicIcon(value: string): string {
-  return value.replace(/^[\s\p{Emoji_Presentation}\p{Extended_Pictographic}\uFE0F]+/u, "").trim();
+  return value.replace(RE_LEADING_EMOJI, "").trim();
 }
 
 /** 解析单个选题块（#### ... 到下一个 #### 或 --- 或结束） */
@@ -248,7 +269,7 @@ function parseTopicBlock(block: string, order: number): TopicData | null {
   const headerLine = lines[0]?.trim() || "";
 
   // 支持 "1. ..." 和 "1.1 ..." 两种编号。
-  const header = headerLine.replace(/^\d+(?:\.\d+)*\.?\s*/, "");
+  const header = headerLine.replace(RE_TOPIC_HEADER, "");
   const titleSeparator = header.match(/\s+—\s+/);
   if (!titleSeparator || titleSeparator.index === undefined) return null;
 
@@ -273,7 +294,7 @@ function parseTopicBlock(block: string, order: number): TopicData | null {
 }
 
 function normalizeNewsTitle(title: string): string {
-  return title.replace(/^\d+\.\s*/, "").trim();
+  return title.replace(RE_NEWS_NUMBER_PREFIX, "").trim();
 }
 
 /** 解析单条新闻块 */
@@ -311,7 +332,7 @@ function parseNewsBlock(block: string, fallbackDate: string): NewsData | null {
   // 解析选题
   const topics: TopicData[] = [];
   // 按 #### 分割选题（跳过 ### 之前的内容）
-  const topicSplit = body.split(/\n####\s+/);
+  const topicSplit = body.split(RE_TOPIC_SPLIT);
   // 第一段是 ### 🎓 论文选题 之前的内容，跳过
   let order = 1;
   for (let i = 1; i < topicSplit.length; i++) {
@@ -347,17 +368,17 @@ function uniqueValues(values: string[]): string[] {
 /** 解析完整的每日导出 .md 文件 */
 export function parseDailyExport(markdown: string): DailyExport | null {
   // 分离 frontmatter
-  const fmMatch = markdown.match(/^---\n([\s\S]*?)\n---/);
+  const fmMatch = markdown.match(RE_FRONTMATTER);
   const fm = fmMatch ? parseFrontmatter(fmMatch[1]) : {};
 
   const date = stringValue(fm.date);
   const generatedAt = stringValue(fm.generated_at);
 
   // 去掉 frontmatter 后的正文
-  const body = markdown.replace(/^---\n[\s\S]*?\n---/, "").trim();
+  const body = markdown.replace(RE_FRONTMATTER, "").trim();
 
   // 按 ## 分割新闻（跳过 # 页面标题之后的第一个空块）
-  const sections = body.split(/\n(?=##\s)/);
+  const sections = body.split(RE_SECTION_HEADER);
   // sections[0] 是页面标题 + 元数据 blockquote
   // sections[1..] 是各条新闻
 
