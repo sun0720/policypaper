@@ -1,6 +1,7 @@
 /**
  * 归档页 — 按年月分组展示
  */
+import Link from "next/link";
 import type { Metadata } from "next";
 import { getArchiveData } from "@/lib/data";
 import { Breadcrumb } from "@/components/Breadcrumb";
@@ -51,7 +52,7 @@ export default function ArchivePage() {
             <ul style={{ listStyle: "none", padding: 0, margin: 0 }}>
               {exports.map((exp) => (
                 <li key={exp.date} style={{ padding: "0.5rem 0", borderBottom: "1px solid var(--border)" }}>
-                  <a
+                  <Link
                     href={`/date/${exp.date}`}
                     style={{
                       color: "var(--foreground)",
@@ -71,7 +72,7 @@ export default function ArchivePage() {
                       {exp.fields.slice(0, 3).join(" · ")}
                       {exp.fields.length > 3 ? " …" : ""}
                     </span>
-                  </a>
+                  </Link>
                 </li>
               ))}
             </ul>

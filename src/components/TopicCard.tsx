@@ -2,7 +2,7 @@
  * TopicCard — 学术论文选题卡片
  * 展示一个经济学论文选题的完整信息（研究问题、理论框架、研究方法、数据来源、创新点）
  */
-import React from "react";
+import React, { memo } from "react";
 import type { TopicData } from "@/lib/parser";
 
 interface TopicCardProps {
@@ -10,7 +10,7 @@ interface TopicCardProps {
   showOrder?: boolean;
 }
 
-export function TopicCard({ topic, showOrder = true }: TopicCardProps) {
+export const TopicCard = memo(function TopicCard({ topic, showOrder = true }: TopicCardProps) {
   const label = showOrder
     ? `选题 ${topic.sortOrder} · ${topic.perspective}`
     : topic.perspective;
@@ -48,16 +48,16 @@ export function TopicCard({ topic, showOrder = true }: TopicCardProps) {
       )}
     </article>
   );
-}
+});
 
-function InfoRow({ label, value }: { label: string; value: string }) {
+const InfoRow = memo(function InfoRow({ label, value }: { label: string; value: string }) {
   return (
     <tr>
       <td>{label}</td>
       <td>{value}</td>
     </tr>
   );
-}
+});
 
 /**
  * 渲染 🔬 研究思路 段落

@@ -2,7 +2,7 @@
  * DateSidebar — 左侧日期导航栏
  * 显示所有日期，点击跳转到对应日期的新闻和选题
  */
-import React from "react";
+import React, { memo } from "react";
 import Link from "next/link";
 
 interface DateInfo {
@@ -17,7 +17,7 @@ interface DateSidebarProps {
   activeDate?: string;
 }
 
-export function DateSidebar({ dates, activeDate }: DateSidebarProps) {
+export const DateSidebar = memo(function DateSidebar({ dates, activeDate }: DateSidebarProps) {
   return (
     <aside className="date-sidebar">
       <div className="date-sidebar-title">日期</div>
@@ -40,4 +40,4 @@ export function DateSidebar({ dates, activeDate }: DateSidebarProps) {
       </nav>
     </aside>
   );
-}
+});

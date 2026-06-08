@@ -1,6 +1,7 @@
 /**
  * 首页 — 按日期降序展示最新经济学论文选题
  */
+import Link from "next/link";
 import { getAllDates, getByDate } from "@/lib/data";
 import { NewsCard } from "@/components/NewsCard";
 import { DateSidebar } from "@/components/DateSidebar";
@@ -41,9 +42,9 @@ export default function HomePage() {
                 <div key={dateInfo.date} className="date-section">
                   <div className="date-heading">
                     <h2 style={{ margin: 0 }}>
-                      <a href={`/date/${dateInfo.date}`} style={{ color: "inherit", textDecoration: "none" }}>
+                      <Link href={`/date/${dateInfo.date}`} style={{ color: "inherit", textDecoration: "none" }}>
                         {dateInfo.date}
-                      </a>
+                      </Link>
                     </h2>
                     <span style={{ fontSize: "0.85rem", color: "var(--muted)" }}>
                       {dateInfo.newsCount} 条新闻 · {dateInfo.topicsCount} 个选题

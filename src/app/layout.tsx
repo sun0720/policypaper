@@ -12,14 +12,14 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
     <html lang="zh-CN">
       <body>
         <header className="site-header">
-          <div className="prose" style={{ display: "flex", justifyContent: "space-between", alignItems: "center" }}>
+          <div className="prose site-header-inner">
             <a href="/" className="site-brand">
               <img src="/logo.png" alt="PolicyPaper" className="site-logo-img" />
               PolicyPaper
             </a>
           </div>
         </header>
-        <main className="prose" style={{ paddingTop: "2rem", paddingBottom: "4rem" }}>
+        <main className="prose site-main">
           {children}
         </main>
         <footer className="site-footer">

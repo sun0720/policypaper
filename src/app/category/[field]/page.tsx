@@ -2,6 +2,7 @@
  * 分类页 — 按经济领域筛选新闻及选题
  * 路由：/category/[field]
  */
+import Link from "next/link";
 import { notFound } from "next/navigation";
 import type { Metadata } from "next";
 import { getByField, getAllFields } from "@/lib/data";
@@ -75,9 +76,9 @@ export default async function CategoryPage({ params }: Props) {
           <div key={date} className="date-section">
             <div className="date-heading">
               <h2 style={{ margin: 0 }}>
-                <a href={`/date/${date}`} style={{ color: "inherit", textDecoration: "none" }}>
+                <Link href={`/date/${date}`} style={{ color: "inherit", textDecoration: "none" }}>
                   {date}
-                </a>
+                </Link>
               </h2>
             </div>
             {items.map(({ news }) => (

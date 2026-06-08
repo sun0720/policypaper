@@ -220,22 +220,22 @@ function extractResearchApproach(block: string): string | undefined {
   return match[1].trim() || undefined;
 }
 
-/** 解析选题 Markdown 表格中的一行 */
-function extractTableValue(markdown: string, keyPattern: RegExp): string {
+/** 单次遍历解析选题 Markdown 表格的所有字段 */
+function extractTableFields(markdown: string): Record<string, string> {
+  const fields: Record<string, string> = {};
   const lines = markdown.split("\n");
   for (const line of lines) {
-    const match = line.match(keyPattern);
-    if (match) {
-      // 表格行格式：| **key** | value |
-      const pipeCount = (line.match(/\|/g) || []).length;
-      if (pipeCount >= 2) {
-        const cells = line.split("|").map((c) => c.trim());
-        // cells[0] 空, cells[1] key, cells[2] value, cells[3] 空
-        return cells[2] || "";
-      }
+    const pipeCount = (line.match(/\|/g) || []).length;
+    if (pipeCount < 2) continue;
+    const cells = line.split("|").map((c) => c.trim());
+    // cells[0] 空, cells[1] **key**, cells[2] value, cells[3] 空
+    const keyCell = cells[1] || "";
+    const keyMatch = keyCell.match(/\*\*(.+?)\*\*/);
+    if (keyMatch) {
+      fields[keyMatch[1]] = cells[2] || "";
     }
   }
-  return "";
+  return fields;
 }
 
 function stripLeadingTopicIcon(value: string): string {
@@ -256,15 +256,18 @@ function parseTopicBlock(block: string, order: number): TopicData | null {
   const title = header.slice(titleSeparator.index + titleSeparator[0].length).trim();
   if (!perspective || !title) return null;
 
+  // 单次遍历提取所有表格字段
+  const fields = extractTableFields(block);
+
   return {
     sortOrder: order,
     perspective,
     title,
-    researchQuestion: extractTableValue(block, /\*\*研究问题\*\*/),
-    theoreticalFramework: extractTableValue(block, /\*\*理论框架\*\*/),
-    methodology: extractTableValue(block, /\*\*研究方法\*\*/),
-    dataSources: extractTableValue(block, /\*\*数据来源\*\*/),
-    innovation: extractTableValue(block, /\*\*创新点\*\*/),
+    researchQuestion: fields["研究问题"] || "",
+    theoreticalFramework: fields["理论框架"] || "",
+    methodology: fields["研究方法"] || "",
+    dataSources: fields["数据来源"] || "",
+    innovation: fields["创新点"] || "",
     researchApproach: extractResearchApproach(block),
   };
 }

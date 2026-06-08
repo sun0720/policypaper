@@ -1,4 +1,29 @@
-@import "tailwindcss";
+/* ====== 最小化 CSS 重置（替代 Tailwind base layer） ====== */
+*,
+*::before,
+*::after {
+  box-sizing: border-box;
+}
+
+html {
+  -webkit-text-size-adjust: 100%;
+  tab-size: 4;
+}
+
+body {
+  margin: 0;
+}
+
+h1, h2, h3, h4, h5, h6 {
+  font-size: inherit;
+  font-weight: inherit;
+  margin: 0;
+}
+
+img, svg, video, canvas {
+  display: block;
+  max-width: 100%;
+}
 
 /* ====== 配色变量 ====== */
 :root {
@@ -64,6 +89,18 @@ body {
   padding: 1.25rem 0;
   backdrop-filter: blur(8px);
   -webkit-backdrop-filter: blur(8px);
+}
+
+.site-header-inner {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+}
+
+/* ====== 主内容区 ====== */
+.site-main {
+  padding-top: 2rem;
+  padding-bottom: 4rem;
 }
 
 /* ====== 站点品牌 ====== */

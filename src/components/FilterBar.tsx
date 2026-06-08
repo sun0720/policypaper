@@ -1,7 +1,7 @@
 /**
  * FilterBar — 按经济领域筛选标签栏
  */
-import React from "react";
+import React, { memo } from "react";
 import Link from "next/link";
 import { FieldBadgeSm } from "./Badge";
 
@@ -10,7 +10,7 @@ interface FilterBarProps {
   activeField?: string;
 }
 
-export function FilterBar({ fields, activeField }: FilterBarProps) {
+export const FilterBar = memo(function FilterBar({ fields, activeField }: FilterBarProps) {
   return (
     <div className="filter-bar">
       <Link
@@ -43,4 +43,4 @@ export function FilterBar({ fields, activeField }: FilterBarProps) {
       })}
     </div>
   );
-}
+});

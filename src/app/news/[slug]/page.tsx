@@ -3,6 +3,7 @@
  * 路由：/news/[slug]
  * 含内页选题目录导航，支持快速跳转
  */
+import Link from "next/link";
 import { notFound } from "next/navigation";
 import type { Metadata } from "next";
 import { getNewsBySlug, getAllGroupedByDate } from "@/lib/data";
@@ -100,15 +101,15 @@ export default async function NewsDetailPage({ params }: Props) {
 
       {/* === 底部导航 === */}
       <nav className="page-footer-nav">
-        <a href={`/date/${date}`} style={{ color: "var(--accent)", textDecoration: "none" }}>
+        <Link href={`/date/${date}`} style={{ color: "var(--accent)", textDecoration: "none" }}>
           ← 返回 {date}
-        </a>
+        </Link>
         <a href="#top" style={{ color: "var(--accent)", textDecoration: "none" }}>
           ↑ 回到顶部
         </a>
-        <a href="/" style={{ color: "var(--accent)", textDecoration: "none" }}>
+        <Link href="/" style={{ color: "var(--accent)", textDecoration: "none" }}>
           返回首页
-        </a>
+        </Link>
       </nav>
     </>
   );

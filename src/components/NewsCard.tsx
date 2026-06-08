@@ -2,7 +2,7 @@
  * NewsCard — 新闻摘要卡片 + 折叠式选题预览
  * 用于首页和日期页列表
  */
-import React from "react";
+import React, { memo } from "react";
 import Link from "next/link";
 import type { NewsData } from "@/lib/parser";
 import { FieldBadgeSm } from "./Badge";
@@ -12,7 +12,7 @@ interface NewsCardProps {
   date: string;
 }
 
-export function NewsCard({ news, date }: NewsCardProps) {
+export const NewsCard = memo(function NewsCard({ news, date }: NewsCardProps) {
   return (
     <article className="news-card">
       {/* 领域标签 */}
@@ -62,4 +62,4 @@ export function NewsCard({ news, date }: NewsCardProps) {
       </details>
     </article>
   );
-}
+});
