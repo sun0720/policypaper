@@ -5,7 +5,7 @@ description: >-
 allowed-tools: Bash, Workflow, Skill, Read, Write, CronCreate
 metadata:
   author: 42ailab
-  version: '1.1'
+  version: '1.2'
   title: 新闻联播全流程流水线
   description_zh: >-
     PolicyPaper 新闻联播专用流水线，使用 Workflow 串联 cctv-scraper（含文字稿）→ economic-filter → paper-topic-analyzer → site-publisher 四个步骤。支持手动触发和 CronCreate 每晚 21:37 定时运行（新闻联播播出后的更新时间）。
@@ -24,9 +24,9 @@ cctv-scraper ──→ economic-filter ──→ paper-topic-analyzer ──→ 
 
 与 `policy-pipeline`（双源：gov.cn + 新闻联播）不同，`cctv-pipeline` 只跑新闻联播一个源，适用于：
 
-- 新闻联播独立调试和补跑
-- 每晚新闻联播更新后实时触发
-- 不需要跑 gov.cn 时的轻量运行
+- 新闻联播独立调试和补跑（如补跑历史日期：`args: { date: "2026-06-05" }`）
+- 每晚 21:37 新闻联播更新后自动触发
+- 不需要跑 gov.cn 时单独运行此流水线
 
 ## When to Use
 

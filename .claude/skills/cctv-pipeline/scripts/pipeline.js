@@ -69,7 +69,10 @@ const PUBLISH_SCHEMA = {
 
 // ─── Date ──────────────────────────────────────────────────
 
-const TODAY = args?.date || '2026-06-09'
+if (!args?.date) {
+  throw new Error('必须传入 args.date，例如: Workflow({ args: { date: "2026-06-09" } })')
+}
+const TODAY = args.date
 
 // ═══════════════════════════════════════════════════════════
 // Phase 1: Scrape
@@ -203,35 +206,13 @@ phase('🧩 Combine')
 let combineResult = null
 try {
   combineResult = await agent(
-    `合并 data/exports/cctv-${TODAY}-part-*.md 为最终导出文件。
+    `合并 data/exports/cctv-${TODAY}-part-*.md 为最终导出文件 data/exports/cctv/${TODAY}.md。
 
-步骤：
-1. Bash: mkdir -p data/exports/cctv && cat data/exports/cctv-${TODAY}-part-*.md > /tmp/cctv-combined-${TODAY}.md
-2. Read /tmp/cctv-combined-${TODAY}.md
-3. 在前面添加 YAML frontmatter：
-
-\`\`\`markdown
----
-date: ${TODAY}
-source: cctv
-field: [汇总各新闻经济领域，用 | 分隔]
-topics_count: [总选题数]
----
-
-# 📰 每日经济学论文选题 — 新闻联播
-
-> 📅 **日期**：${TODAY}
-> 📡 **新闻来源**：新闻联播
-> 📊 **经济新闻**：${completed.length} 条
-> 🎓 **论文选题**：[总选题数] 个
-> 🏷️ **覆盖领域**：[汇总]
-
----
-\`\`\`
-
-4. Write 到 data/exports/cctv/${TODAY}.md
-5. Bash: cp data/exports/cctv/${TODAY}.md data/exports/cctv/${TODAY}-paper-topics.md
-6. Bash: rm data/exports/cctv-${TODAY}-part-*.md
+1. Bash: mkdir -p data/exports/cctv && cat data/exports/cctv-${TODAY}-part-*.md > /tmp/cctv-merged.md
+2. Read /tmp/cctv-merged.md
+3. 前置 YAML frontmatter（date: ${TODAY}, source: cctv）+ 页面标题「# 📰 每日经济学论文选题 — 新闻联播」
+4. Write → data/exports/cctv/${TODAY}.md
+5. Bash: cp data/exports/cctv/${TODAY}.md data/exports/cctv/${TODAY}-paper-topics.md && rm data/exports/cctv-${TODAY}-part-*.md
 
 返回 file / topic_count / news_count。`,
     { label: 'combine', phase: '🧩 Combine', schema: COMBINE_SCHEMA }
