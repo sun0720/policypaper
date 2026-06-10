@@ -5,7 +5,7 @@ description: >-
 allowed-tools: Bash, Workflow, Skill, Read, Write, CronCreate
 metadata:
   author: 42ailab
-  version: '1.0'
+  version: '1.1'
   title: 新闻联播全流程流水线
   description_zh: >-
     PolicyPaper 新闻联播专用流水线，使用 Workflow 串联 cctv-scraper（含文字稿）→ economic-filter → paper-topic-analyzer → site-publisher 四个步骤。支持手动触发和 CronCreate 每晚 21:37 定时运行（新闻联播播出后的更新时间）。
@@ -48,10 +48,10 @@ cctv-scraper ──→ economic-filter ──→ paper-topic-analyzer ──→ 
 
 | 操作 | 方式 |
 |---|---|
-| 🚀 手动运行一次 | 说「运行新闻联播流水线」或 `/cctv-pipeline` |
-| ⏰ 每晚定时 | `CronCreate({ cron: "37 21 * * *", prompt: "/cctv-pipeline", durable: true })` |
-| 📅 指定日期运行 | 调用时传入日期参数 |
-| 🛑 停止定时 | `CronDelete <job-id>` |
+| 🚀 手动运行今天 | 说「运行新闻联播流水线」或 `/cctv-pipeline` |
+| 📅 运行指定日期 | `Workflow({ scriptPath: ".claude/skills/cctv-pipeline/scripts/pipeline.js", args: { date: "2026-06-09" } })` |
+| ⏰ 每晚定时（持久化） | `CronCreate({ cron: "37 21 * * *", prompt: "/cctv-pipeline", durable: true })` |
+| 🛑 停止定时 | `CronList` → 找 job ID → `CronDelete <job-id>` |
 | 📊 查看进度 | `/workflows` |
 | 📁 查看产出 | `data/exports/cctv/{date}.md` |
 
@@ -151,10 +151,11 @@ CronCreate({
 |---|---|---|
 | 触发时间过早 | 新闻联播文字稿需播出后约 2 小时才更新到网站 | 设置在 21:00 之后触发 |
 | 重复运行同一天 | 浪费 API 调用 | Step 1 检查已有数据并询问 |
-| 用 `/loop` 设置定时但失效 | `/loop` 在 session 关闭后丢失 | 使用 `CronCreate({ durable: true })` |
+| 用 `/loop` 设置定时但失效 | 非持久化，session 关闭后丢失 | 使用 `CronCreate({ durable: true })` |
 | Workflow 忘了传 `args.date` | `new Date()` 在 Workflow 中不可用 | 必须通过 `args: { date: "..." }` 传入 |
-| 在非 PolicyPaper 项目调用 | 依赖的 skills 和数据目录不存在 | 确保在项目根目录运行 |
-| 以为无文字稿 | v1.x 的 cctv-scraper 无 --content | 升级到 cctv-scraper v2.0+，pipeline 默认使用 --content |
+| Analyze 阶段每个 agent 从零写 prompt | 重复生成相同的视角选择和格式要求 | pipeline.js v1.1 已改为 delegate 到 paper-topic-analyzer Skill |
+| 以为无文字稿 | 旧版 cctv-scraper 无 --content | 升级 cctv-scraper v2.0+，pipeline v1.1 默认启用 --content |
+| 手动触发时不传日期 | 默认 fallback 日期可能已过期 | 在 Workflow 调用时显式传入 `args: { date: "YYYY-MM-DD" }` |
 
 ## Resources
 

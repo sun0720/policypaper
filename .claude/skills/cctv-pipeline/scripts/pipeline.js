@@ -1,14 +1,73 @@
 export const meta = {
   name: 'cctv-pipeline',
-  description: 'Full automation for CCTV news: scrape (with content) → filter → parallel analyze → combine → publish',
+  description: 'CCTV-only pipeline: scrape (with content) → filter → parallel analyze → combine → publish',
   phases: [
-    { title: '🔍 Scrape', detail: 'Fetch today news segments from tv.cctv.com via cctv-scraper (with --content for text)' },
+    { title: '🔍 Scrape', detail: 'Fetch today news segments + transcripts from tv.cctv.com via cctv-scraper' },
     { title: '🏷️ Filter', detail: 'Filter economic news via economic-filter' },
-    { title: '🧠 Analyze', detail: 'Generate 5 topics per news item — one parallel agent each' },
+    { title: '🧠 Analyze', detail: 'Generate 5 paper topics per news item — one parallel agent each' },
     { title: '🧩 Combine', detail: 'Merge all part files into final export' },
     { title: '🚀 Publish', detail: 'Publish to site via site-publisher' },
   ],
 }
+
+// ─── Schemas ──────────────────────────────────────────────
+
+const SCRAPE_SCHEMA = {
+  type: 'object',
+  properties: {
+    count: { type: 'number' },
+    skipped: { type: 'boolean' },
+    reason: { type: 'string' },
+    file: { type: 'string' },
+  },
+  required: ['count', 'skipped', 'file'],
+}
+
+const FILTER_SCHEMA = {
+  type: 'object',
+  properties: {
+    count: { type: 'number' },
+    skipped: { type: 'boolean' },
+    reason: { type: 'string' },
+    file: { type: 'string' },
+    fields: { type: 'array', items: { type: 'string' } },
+  },
+  required: ['count', 'skipped', 'file'],
+}
+
+const TOPIC_SCHEMA = {
+  type: 'object',
+  properties: {
+    news_index: { type: 'number' },
+    title: { type: 'string' },
+    topics_count: { type: 'number' },
+    file: { type: 'string' },
+  },
+  required: ['topics_count', 'file'],
+}
+
+const COMBINE_SCHEMA = {
+  type: 'object',
+  properties: {
+    file: { type: 'string' },
+    topic_count: { type: 'number' },
+    news_count: { type: 'number' },
+  },
+  required: ['file', 'topic_count', 'news_count'],
+}
+
+const PUBLISH_SCHEMA = {
+  type: 'object',
+  properties: {
+    status: { type: 'string' },
+    url: { type: 'string' },
+    file: { type: 'string' },
+    reason: { type: 'string' },
+  },
+  required: ['status'],
+}
+
+// ─── Date ──────────────────────────────────────────────────
 
 const TODAY = args?.date || '2026-06-09'
 
@@ -22,25 +81,17 @@ log(`[1/5] 抓取新闻联播片段（含文字稿）(${TODAY})...`)
 let scrapeResult = null
 try {
   scrapeResult = await agent(
-    `使用 **cctv-scraper** skill 抓取新闻联播 ${TODAY} 的新闻片段（含文字稿）。
+    `使用 **cctv-scraper** skill 抓取新闻联播 ${TODAY} 的新闻片段。
 
 任务：
 1. 调用 Skill 工具：skill="cctv-scraper"
-2. 按 skill 指引，使用 --content 参数抓取每条新闻的文字稿
-3. 结果保存到 data/raw/cctv/${TODAY}.json
+2. 按 skill 指引抓取 tv.cctv.com 新闻联播片段
+3. 使用 --content 参数抓取文字稿，结果保存到 data/raw/cctv/${TODAY}.json
 
-命令：
-  python3 .claude/skills/cctv-scraper/scripts/scrape_cctv.py \\
-    --date ${TODAY} \\
-    --content \\
-    --format json \\
-    --output data/raw/cctv/${TODAY}.json \\
-    --verbose
-
-若新闻联播今日尚未更新（404），设置 skipped=true 并说明原因。`,
-    { label: 'cctv-scraper', phase: '🔍 Scrape' }
+若新闻联播今日尚未更新（页面 404），设置 skipped=true 并说明原因。`,
+    { label: 'cctv-scraper', phase: '🔍 Scrape', schema: SCRAPE_SCHEMA }
   )
-  log(`[1/5] ✅ 抓取新闻片段完成`)
+  log(`[1/5] ✅ 抓取 ${scrapeResult?.count ?? 0} 条新闻片段`)
 } catch (err) {
   log(`[1/5] ❌ 爬虫失败: ${err.message}`)
   return { date: TODAY, status: 'scrape_failed', error: err.message }
@@ -52,7 +103,12 @@ try {
 
 phase('🏷️ Filter')
 
-log(`[2/5] 过滤经济新闻...`)
+if (!scrapeResult || scrapeResult.skipped || scrapeResult.count === 0) {
+  log(`[2/5] ⏭️ 跳过 — ${scrapeResult?.reason || '今日无新闻片段'}`)
+  return { date: TODAY, status: 'no_news', phases_completed: ['scrape'], scrape: scrapeResult }
+}
+
+log(`[2/5] 过滤经济新闻（从 ${scrapeResult.count} 条中筛选）...`)
 
 let filterResult = null
 try {
@@ -62,48 +118,37 @@ try {
 任务：
 1. 调用 Skill 工具：skill="economic-filter"
 2. 读取 data/raw/cctv/${TODAY}.json
-3. 按 skill 中的分类体系标注（分类基于标题+正文 content 字段）
+3. 按 skill 中的分类体系标注（注意：数据来源为新闻联播，分类基于标题+文字稿 content）
 4. 只保留相关度 >= 2 的新闻
 5. 结果保存到 data/filtered/cctv/${TODAY}.json
 
 若无经济新闻，设置 skipped=true。`,
-    { label: 'economic-filter', phase: '🏷️ Filter' }
+    { label: 'economic-filter', phase: '🏷️ Filter', schema: FILTER_SCHEMA }
   )
-  log(`[2/5] ✅ 过滤完成`)
+  log(`[2/5] ✅ 过滤出 ${filterResult?.count ?? 0} 条经济新闻`)
 } catch (err) {
   log(`[2/5] ❌ 过滤失败: ${err.message}`)
   return { date: TODAY, status: 'filter_failed', error: err.message, scrape: scrapeResult }
 }
 
 // ═══════════════════════════════════════════════════════════
-// Phase 3: Analyze（并行逐条生成—核心优化）
+// Phase 3: Analyze（并行逐条生成）
 // ═══════════════════════════════════════════════════════════
 
 phase('🧠 Analyze')
 
-// 统计经济新闻条数
-let newsCount = 0
-try {
-  const check = await agent(
-    `读取 data/filtered/cctv/${TODAY}.json，返回其中新闻条数。若文件不存在或数组为空，返回 0。`,
-    { label: 'count-check', phase: '🧠 Analyze' }
-  )
-  newsCount = parseInt(check) || 0
-} catch {
-  newsCount = 0
-}
-
-if (newsCount === 0) {
-  log(`[3/5] ⏭️ 跳过 — 无经济新闻`)
+if (!filterResult || filterResult.skipped || filterResult.count === 0) {
+  log(`[3/5] ⏭️ 跳过 — ${filterResult?.reason || '无经济新闻'}`)
   return {
     date: TODAY, status: 'no_economic_news',
     phases_completed: ['scrape', 'filter'], scrape: scrapeResult, filter: filterResult,
   }
 }
 
-log(`[3/5] 🚀 并行生成：${newsCount} 条经济新闻 × 5 选题...`)
+const NEWS_COUNT = filterResult.count
+log(`[3/5] 🚀 并行生成：${NEWS_COUNT} 个 agent 各处理 1 条新闻，每条生成 5 个选题...`)
 
-// 预拆分：将 filtered JSON 拆为独立文件
+// 预拆分
 log(`[3/5] 📦 预拆分新闻数据...`)
 try {
   await agent(
@@ -121,73 +166,33 @@ for i, news in enumerate(news_list, 1):
         json.dump(news, out, ensure_ascii=False, indent=2)
     print(f'  news {i}: ' + news.get('title', '')[:40])
 print(f'Split {len(news_list)} items')
-\`
-\`\``,
+\"
+\`\`\``,
     { label: 'pre-split', phase: '🧠 Analyze' }
   )
 } catch (err) {
   log(`[3/5] ⚠️ 预拆分失败: ${err.message}，回退到完整文件模式`)
 }
 
-// pipeline 按 index 分发 — 每个 agent 优先读自己的小文件
+// 每个 agent 读取分片 → 调用 paper-topic-analyzer 生成选题
 const topicResults = await pipeline(
-  Array.from({ length: newsCount }, (_, i) => i + 1),
+  Array.from({ length: NEWS_COUNT }, (_, i) => i + 1),
   (newsIndex) =>
     agent(
-      `你是经济学论文选题专家。读取 data/.tmp/cctv-${TODAY}/news-${newsIndex}.json（如不存在则从 data/filtered/cctv/${TODAY}.json 中取第 ${newsIndex} 条），为该新闻生成 5 个差异化论文选题，写入 data/exports/cctv-${TODAY}-part-${newsIndex}.md。
+      `使用 **paper-topic-analyzer** skill 为新闻联播经济新闻生成论文选题。
 
-## 重要提醒
-- 新闻来源为**新闻联播**，内容来自视频文字稿
-- 基于标题 + content（文字稿正文）生成选题
-- 选题要求：学术论文标题 20-40 字，研究问题可检验，理论框架具体，研究方法可操作
-
-## 视角（7 选 5，不重复）
-📊 新古典(市场均衡/资源配置) | 💰 凯恩斯(总需求/政策乘数) | 🏛️ 制度经济学(产权/交易成本/激励) | 🧠 行为经济学(有限理性/锚定/前景理论) | ⚖️ 政治经济学(国家-市场/央地博弈) | 🌏 发展经济学(结构转型/技术追赶) | 👷 劳动经济学(工资/就业/人力资本)
-
-## 输出格式（每个选题严格按此模板）
-
-\`\`\`markdown
-## [新闻标题]
-
-> 📂 **经济领域**：[领域]
-> 📡 **来源**：新闻联播
-> 🔗 **原文链接**：[url]
-
-**📄 新闻正文**
-
-[正文]
-
-### 🎓 论文选题
-
-#### 1. [视角] — [论文标题]
-
-| | |
-|---|---|
-| **研究问题** | [...] |
-| **理论框架** | [学者+理论] |
-| **研究方法** | [方法] |
-| **数据来源** | [来源] |
-| **创新点** | [贡献] |
-
-**🔬 研究思路**
-
-**1. 理论分析与研究假说** [80-150字，H1/H2/H3]
-**2. 识别策略** [80-150字，因果识别+假定]
-**3. 计量模型设定** [80-150字，方程]
-**4. 变量构造与数据** [80-150字]
-**5. 稳健性检验方案** [80-150字，≥3种]
-
----
-\`\`\`
-
-要求：视角不重复、理论引用具体学者、数据来源可获取、研究思路每节 80-150 字`,
-
-      { label: `news-${newsIndex}`, phase: '🧠 Analyze' }
+任务：
+1. 调用 Skill 工具：skill="paper-topic-analyzer"
+2. 读取 data/.tmp/cctv-${TODAY}/news-${newsIndex}.json（如不存在则从 data/filtered/cctv/${TODAY}.json 取第 ${newsIndex} 条）
+3. 按 skill 指引，从 7 个视角中选 5 个，生成差异化论文选题
+4. **重要**：新闻来源为「新闻联播」，Markdown 元数据中 📡 来源 写「新闻联播」
+5. 结果写入 data/exports/cctv-${TODAY}-part-${newsIndex}.md`,
+      { label: `news-${newsIndex}`, phase: '🧠 Analyze', schema: TOPIC_SCHEMA }
     )
 )
 
 const completed = topicResults.filter(Boolean)
-log(`[3/5] ✅ 并行完成：${completed.length}/${newsCount} 条新闻，选题生成完毕`)
+log(`[3/5] ✅ 并行完成：${completed.length}/${NEWS_COUNT} 条，共 ${completed.reduce((s, t) => s + (t.topics_count || 0), 0)} 个选题`)
 
 // ═══════════════════════════════════════════════════════════
 // Phase 4: Combine
@@ -198,18 +203,18 @@ phase('🧩 Combine')
 let combineResult = null
 try {
   combineResult = await agent(
-    `合并 data/exports/cctv-${TODAY}-part-*.md 所有分片文件为一个完整的 Markdown 导出文件。
+    `合并 data/exports/cctv-${TODAY}-part-*.md 为最终导出文件。
 
-## 步骤
-1. 用 Bash: cat data/exports/cctv-${TODAY}-part-*.md > /tmp/cctv-combined-${TODAY}.md
-2. 用 Read 读取 /tmp/cctv-combined-${TODAY}.md
-3. 在前面添加 YAML frontmatter 和页面标题：
+步骤：
+1. Bash: mkdir -p data/exports/cctv && cat data/exports/cctv-${TODAY}-part-*.md > /tmp/cctv-combined-${TODAY}.md
+2. Read /tmp/cctv-combined-${TODAY}.md
+3. 在前面添加 YAML frontmatter：
 
 \`\`\`markdown
 ---
 date: ${TODAY}
 source: cctv
-field: [汇总各新闻的经济领域，用 | 分隔]
+field: [汇总各新闻经济领域，用 | 分隔]
 topics_count: [总选题数]
 ---
 
@@ -224,14 +229,14 @@ topics_count: [总选题数]
 ---
 \`\`\`
 
-4. 用 Write 写入 data/exports/cctv/${TODAY}.md
-5. 用 Bash: cp data/exports/cctv/${TODAY}.md data/exports/cctv/${TODAY}-paper-topics.md
-6. 用 Bash: rm data/exports/cctv-${TODAY}-part-*.md 清理分片文件
+4. Write 到 data/exports/cctv/${TODAY}.md
+5. Bash: cp data/exports/cctv/${TODAY}.md data/exports/cctv/${TODAY}-paper-topics.md
+6. Bash: rm data/exports/cctv-${TODAY}-part-*.md
 
-返回合并后的文件路径和总选题数。`,
-    { label: 'combine', phase: '🧩 Combine' }
+返回 file / topic_count / news_count。`,
+    { label: 'combine', phase: '🧩 Combine', schema: COMBINE_SCHEMA }
   )
-  log(`[4/5] ✅ 合并完成：${combineResult?.file || `data/exports/cctv/${TODAY}.md`}`)
+  log(`[4/5] ✅ 合并完成：${combineResult?.file}（${combineResult?.topic_count ?? 0} 个选题）`)
 } catch (err) {
   log(`[4/5] ⚠️ 合并失败: ${err.message}`)
 }
@@ -247,16 +252,16 @@ log('[5/5] 发布到网站...')
 let publishResult = null
 try {
   publishResult = await agent(
-    `使用 **site-publisher** skill 将新闻联播的分析结果发布到网站。
+    `使用 **site-publisher** skill 将新闻联播分析结果发布到网站。
 
 任务：
 1. 调用 Skill 工具：skill="site-publisher"
 2. 读取 data/exports/cctv/${TODAY}.md
-3. 按 skill 指引导入数据库并更新网站页面
+3. 按 skill 指引导入数据库并更新网站
 4. 若数据库未就绪，status 设为 "saved"`,
-    { label: 'site-publisher', phase: '🚀 Publish' }
+    { label: 'site-publisher', phase: '🚀 Publish', schema: PUBLISH_SCHEMA }
   )
-  log(`[5/5] ✅ 发布完成`)
+  log(`[5/5] ✅ ${publishResult?.status ?? 'unknown'}`)
 } catch (err) {
   log(`[5/5] ⚠️ 发布异常: ${err.message}（数据已保留）`)
   publishResult = { status: 'saved', file: `data/exports/cctv/${TODAY}.md`, reason: err.message }
@@ -266,14 +271,19 @@ try {
 // Summary
 // ═══════════════════════════════════════════════════════════
 
+const newsCount = scrapeResult?.count ?? 0
+const econCount = filterResult?.count ?? 0
+const topicCount = combineResult?.topic_count ?? 0
+const pubStatus = publishResult?.status ?? 'unknown'
+
 log('')
 log('══════════════════════════════════════')
 log(`📺 新闻联播流水线完成 — ${TODAY}`)
 log('══════════════════════════════════════')
-log(`  🔍 Scrape : 新闻联播片段`)
-log(`  🏷️ Filter : ${newsCount} 条经济新闻`)
-log(`  🧠 Analyze: ${completed.length} 条并行生成`)
-log(`  🚀 Publish: ${publishResult?.status ?? 'unknown'}`)
+log(`  🔍 Scrape : ${newsCount} 条新闻片段`)
+log(`  🏷️ Filter : ${econCount} 条经济新闻`)
+log(`  🧠 Analyze: ${topicCount} 个论文话题（${completed.length} 条并行）`)
+log(`  🚀 Publish: ${pubStatus}`)
 log('══════════════════════════════════════')
 log(`📁 data/exports/cctv/${TODAY}.md`)
 
@@ -282,6 +292,6 @@ return {
   status: 'completed',
   source: 'cctv',
   phases_completed: ['scrape', 'filter', 'analyze', 'combine', 'publish'],
-  counts: { economic: newsCount, completed: completed.length },
-  publish_status: publishResult?.status,
+  counts: { news: newsCount, economic: econCount, topics: topicCount },
+  publish_status: pubStatus,
 }
