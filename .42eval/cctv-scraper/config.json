@@ -1,0 +1,85 @@
+{
+  "version": "2.0",
+  "skillName": "cctv-scraper",
+  "skillPath": "/Users/sunguangya/Desktop/J.AI项目/PolicyPaper/.claude/skills/cctv-scraper",
+  "classification": {
+    "quadrant": "mastery",
+    "strategy": "comparison",
+    "modelCapability": "strong",
+    "humanPractice": "best",
+    "modelScore": 100,
+    "practiceScore": 95,
+    "confidence": 0.98,
+    "signals": [
+      {
+        "dimension": "model",
+        "direction": "strong",
+        "keyword": "api",
+        "weight": 10
+      },
+      {
+        "dimension": "practice",
+        "direction": "strong",
+        "keyword": "standard",
+        "weight": 6
+      },
+      {
+        "dimension": "model",
+        "direction": "strong",
+        "keyword": "调试",
+        "weight": 4
+      },
+      {
+        "dimension": "practice",
+        "direction": "strong",
+        "keyword": "标准",
+        "weight": 4
+      },
+      {
+        "dimension": "practice",
+        "direction": "strong",
+        "keyword": "错误处理",
+        "weight": 3
+      },
+      {
+        "dimension": "model",
+        "direction": "strong",
+        "keyword": "分析",
+        "weight": 2
+      },
+      {
+        "dimension": "model",
+        "direction": "strong",
+        "keyword": "integration",
+        "weight": 2
+      },
+      {
+        "dimension": "model",
+        "direction": "strong",
+        "keyword": "workflow",
+        "weight": 2
+      },
+      {
+        "dimension": "practice",
+        "direction": "strong",
+        "keyword": "reference",
+        "weight": 2
+      },
+      {
+        "dimension": "practice",
+        "direction": "strong",
+        "keyword": "示例",
+        "weight": 2
+      },
+      {
+        "dimension": "practice",
+        "direction": "weak",
+        "keyword": "quick",
+        "weight": 2
+      }
+    ]
+  },
+  "currentIteration": 0,
+  "createdAt": "2026-06-10T02:16:07.198Z",
+  "updatedAt": "2026-06-10T02:16:07.198Z"
+}

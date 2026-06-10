@@ -1,9 +1,22 @@
 /**
  * TopicCard — 学术论文选题卡片
  * 展示一个经济学论文选题的完整信息（研究问题、理论框架、研究方法、数据来源、创新点）
+ *
+ * 🚀 性能优化：预编译正则 + useMemo 缓存 ResearchBody 渲染结果
  */
-import React, { memo } from "react";
+import React, { memo, useMemo } from "react";
 import type { TopicData } from "@/lib/parser";
+
+// ═══════════════════════════════════════════════════════════
+// 预编译正则（模块级常量，避免每次渲染重复编译）
+// ═══════════════════════════════════════════════════════════
+
+const RE_SPLIT_DOUBLE_NEWLINE = /\n\n/;
+const RE_RESEARCH_SECTION = /\n(?=\*\*\d+\.\s+)/;
+const RE_SECTION_TITLE = /^\*\*(\d+\.\s+.+?)\*\*/;
+const RE_BOLD_SPLIT = /(\*\*.*?\*\*)/g;
+const RE_LIST_ITEM = /^\s*(?:[-•]|\d+[.)])\s+/;
+const RE_MATH_LINE = /^[\s]*[A-Za-z0-9αβγδεθμσΣ_{}\[\]()=+\-*/<>,.^~′\s]+$/;
 
 interface TopicCardProps {
   topic: TopicData;
@@ -64,14 +77,16 @@ const InfoRow = memo(function InfoRow({ label, value }: { label: string; value: 
  * 按 **N. 标题** 拆分子节，处理段落、列表和方程块
  */
 function ResearchApproach({ content }: { content: string }) {
-  // Split by **N. Title** pattern (at line start)
-  const sections = content.split(/\n(?=\*\*\d+\.\s+)/);
+  // 🚀 useMemo 缓存拆分结果 — 避免每次渲染重复执行正则
+  const sections = useMemo(() => {
+    return content.split(RE_RESEARCH_SECTION);
+  }, [content]);
 
   return (
     <div className="research-approach">
       {sections.map((section, i) => {
         // Extract **N. Title** header
-        const titleMatch = section.match(/^\*\*(\d+\.\s+.+?)\*\*/);
+        const titleMatch = section.match(RE_SECTION_TITLE);
         const title = titleMatch ? titleMatch[1] : null;
         const body = titleMatch
           ? section.slice(titleMatch[0].length).trim()
@@ -82,7 +97,7 @@ function ResearchApproach({ content }: { content: string }) {
             {title && (
               <div className="research-approach-subtitle">{title}</div>
             )}
-            <ResearchBody content={body} />
+            <ResearchBody key={i} content={body} />
           </div>
         );
       })}
@@ -92,17 +107,20 @@ function ResearchApproach({ content }: { content: string }) {
 
 /** 渲染研究思路子节正文：处理段落、列表和方程块 */
 function ResearchBody({ content }: { content: string }) {
-  // Split on double newlines to separate logical blocks
-  const blocks = content.split(/\n\n/).filter(Boolean);
+  // 🚀 useMemo 缓存渲染块分类结果
+  const blocks = useMemo(() => {
+    return content.split(RE_SPLIT_DOUBLE_NEWLINE).filter(Boolean);
+  }, [content]);
 
   return (
     <>
       {blocks.map((block, i) => {
-        // 方程块：以缩进开头或含特殊字符的行
         const lines = block.split("\n");
+
+        // 方程块检测：≥2 行且每行都是数学符号模式
         const isMathBlock =
           lines.length >= 2 &&
-          lines.every((l) => /^[\s]*[A-Za-z0-9αβγδεθμσΣ_{}\[\]()=+\-*/<>,.^~′\s]+$/.test(l.trim()) && l.trim().length > 0);
+          lines.every((l) => RE_MATH_LINE.test(l.trim()) && l.trim().length > 0);
 
         if (isMathBlock) {
           return (
@@ -112,10 +130,10 @@ function ResearchBody({ content }: { content: string }) {
           );
         }
 
-        // 列表块：以 - 或数字开头
+        // 列表块检测
         if (
           lines.every(
-            (l) => /^\s*(?:[-•]|\d+[.)])\s+/.test(l) || l.trim() === ""
+            (l) => RE_LIST_ITEM.test(l) || l.trim() === ""
           )
         ) {
           return (
@@ -123,7 +141,7 @@ function ResearchBody({ content }: { content: string }) {
               {lines
                 .filter((l) => l.trim())
                 .map((l, j) => (
-                  <li key={j}>{l.replace(/^\s*(?:[-•]|\d+[.)])\s+/, "")}</li>
+                  <li key={j}>{l.replace(RE_LIST_ITEM, "")}</li>
                 ))}
             </ul>
           );
@@ -147,7 +165,7 @@ function ResearchBody({ content }: { content: string }) {
 
 /** 渲染行内 bold 标记 */
 function renderInline(text: string): React.ReactNode {
-  const parts = text.split(/(\*\*.*?\*\*)/g);
+  const parts = text.split(RE_BOLD_SPLIT);
   return parts.map((part, i) => {
     if (part.startsWith("**") && part.endsWith("**")) {
       return <strong key={i}>{part.slice(2, -2)}</strong>;

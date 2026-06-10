@@ -76,11 +76,15 @@ export interface NewsData {
   topics: TopicData[];
   /** 生成的 slug，用于详情页路由 */
   slug: string;
+  /** 数据来源：gov（中国政府网）或 cctv（新闻联播） */
+  source?: 'gov' | 'cctv';
 }
 
 export interface DailyExport {
   /** 导出日期 YYYY-MM-DD */
   date: string;
+  /** 数据来源：gov（中国政府网）或 cctv（新闻联播） */
+  source?: 'gov' | 'cctv';
   /** 经济领域列表 */
   fields: string[];
   /** 新闻条数 */
