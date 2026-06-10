@@ -1,10 +1,11 @@
 import type { Metadata } from "next";
+import Link from "next/link";
 import "./globals.css";
 
 export const metadata: Metadata = {
   title: "中国经济政策论文选题 | EconTopic",
   description:
-    "每日 AI 分析中国政府网经济新闻，生成经济学论文选题方向",
+    "每日 AI 分析中国政府网与新闻联播经济新闻，生成经济学论文选题方向",
 };
 
 export default function RootLayout({ children }: { children: React.ReactNode }) {
@@ -13,10 +14,18 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
       <body>
         <header className="site-header">
           <div className="prose site-header-inner">
-            <a href="/" className="site-brand">
+            <Link href="/" className="site-brand">
               <img src="/logo.png" alt="PolicyPaper" className="site-logo-img" />
               PolicyPaper
-            </a>
+            </Link>
+            <nav className="header-source-nav">
+              <Link href="/?source=gov" className="header-source-btn" scroll={false}>
+                🇨🇳 中国政府网
+              </Link>
+              <Link href="/?source=cctv" className="header-source-btn" scroll={false}>
+                📺 新闻联播
+              </Link>
+            </nav>
           </div>
         </header>
         <main className="prose site-main">
@@ -25,8 +34,11 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
         <footer className="site-footer">
           <div className="prose">
             <p>
-              数据来源：<a href="https://www.gov.cn" style={{ color: "var(--accent)" }}>中国政府网</a>
-              {" "}· 仅供学术参考
+              数据来源：
+              <a href="https://www.gov.cn" style={{ color: "var(--accent)" }}>中国政府网</a>
+              {" · "}
+              <a href="https://tv.cctv.com/lm/xwlb/" style={{ color: "var(--accent)" }}>新闻联播</a>
+              {" · "}仅供学术参考
             </p>
           </div>
         </footer>

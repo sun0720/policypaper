@@ -120,6 +120,38 @@ body {
   width: auto;
 }
 
+/* ====== Header 源切换按钮 ====== */
+.header-source-nav {
+  display: flex;
+  gap: 0.5rem;
+  align-items: center;
+}
+
+.header-source-btn {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.35rem;
+  padding: 0.45rem 1rem;
+  border-radius: 8px;
+  font-size: 0.85rem;
+  font-weight: 500;
+  text-decoration: none;
+  color: var(--muted);
+  background: transparent;
+  border: 1px solid var(--border);
+  transition: background 0.2s ease, color 0.2s ease, border-color 0.2s ease, box-shadow 0.2s ease;
+}
+.header-source-btn:hover {
+  background: var(--card);
+  color: var(--foreground);
+  border-color: var(--divider);
+  box-shadow: var(--shadow-sm);
+}
+.header-source-btn:focus-visible {
+  outline: 2px solid var(--accent);
+  outline-offset: 2px;
+}
+
 /* 标题层级 — 明确递进差 */
 .prose h1 {
   font-family: 'STSong', 'Songti SC', 'Noto Serif SC', Georgia, serif;
@@ -263,6 +295,80 @@ body {
   line-height: 1.65;
   max-width: 600px;
   margin: 0 auto;
+}
+
+/* ====== Hero 区域双源切换 Tab ====== */
+.source-tabs {
+  display: inline-flex;
+  gap: 0;
+  margin-bottom: 1rem;
+  border: 1px solid var(--divider);
+  border-radius: 10px;
+  overflow: hidden;
+}
+.source-tab {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.4rem;
+  padding: 0.55rem 1.4rem;
+  font-size: 0.9rem;
+  font-weight: 600;
+  text-decoration: none;
+  color: var(--muted);
+  background: transparent;
+  transition: background 0.2s ease, color 0.2s ease;
+}
+.source-tab:first-child {
+  border-right: 1px solid var(--divider);
+}
+.source-tab:hover {
+  background: var(--card);
+  color: var(--foreground);
+}
+.source-tab.active {
+  background: var(--accent);
+  color: #ffffff;
+}
+.source-tab.active:hover {
+  background: var(--accent);
+  color: #ffffff;
+}
+/* 暗色模式下 active 文字保持高对比度 */
+@media (prefers-color-scheme: dark) {
+  .source-tab.active {
+    background: var(--accent);
+    color: #1c1917;
+  }
+}
+
+/* ====== 新闻来源徽章 ====== */
+.news-source-badge {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.25rem;
+  padding: 0.15rem 0.5rem;
+  border-radius: 4px;
+  font-size: 0.72rem;
+  font-weight: 600;
+  letter-spacing: 0.02em;
+}
+.news-source-badge.gov {
+  background: #fef3c7;
+  color: #92400e;
+}
+.news-source-badge.cctv {
+  background: #dbeafe;
+  color: #1e3a5f;
+}
+@media (prefers-color-scheme: dark) {
+  .news-source-badge.gov {
+    background: #78350f;
+    color: #fde68a;
+  }
+  .news-source-badge.cctv {
+    background: #1e3a5f;
+    color: #93c5fd;
+  }
 }
 .date-section {
   margin-bottom: 2rem;

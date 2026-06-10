@@ -13,11 +13,17 @@ interface NewsCardProps {
 }
 
 export const NewsCard = memo(function NewsCard({ news, date }: NewsCardProps) {
+  const sourceLabel = news.source === "cctv" ? "新闻联播" : "中国政府网";
+  const sourceClass = news.source === "cctv" ? "cctv" : "gov";
+
   return (
     <article className="news-card">
-      {/* 领域标签 */}
+      {/* 领域标签 + 来源徽章 */}
       <div className="news-meta">
         <FieldBadgeSm field={news.economicField} />
+        <span className={`news-source-badge ${sourceClass}`}>
+          {news.source === "cctv" ? "📺" : "🇨🇳"} {sourceLabel}
+        </span>
       </div>
 
       {/* 新闻标题 + 原文链接 */}

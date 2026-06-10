@@ -1,65 +1,13 @@
 /**
- * 首页 — 按日期降序展示最新经济学论文选题
+ * 首页 — 双源切换展示经济学论文选题
+ * 服务端预加载全量数据 → SourcePage 客户端按 ?source=gov|cctv 过滤
  */
-import Link from "next/link";
-import { getAllDates, getByDate } from "@/lib/data";
-import { NewsCard } from "@/components/NewsCard";
-import { DateSidebar } from "@/components/DateSidebar";
+import { getAllGroupedByDate, getAllDates } from "@/lib/data";
+import { SourcePage } from "@/components/SourcePage";
 
 export default function HomePage() {
-  const dates = getAllDates();
+  const allExports = getAllGroupedByDate();
+  const allDates = getAllDates();
 
-  return (
-    <>
-      {/* Hero 区域：横跨全宽 */}
-      <section className="page-hero">
-        <h1>经济学论文选题</h1>
-        <p>
-          依据中国政府网的经济新闻，寻找相关的经济学论文选题，为经济学研究者提高选题灵感
-        </p>
-      </section>
-
-      <div className="content-layout">
-        {/* 左侧：日期导航 */}
-        <div className="sidebar-column">
-          <DateSidebar dates={dates} />
-        </div>
-
-        {/* 右侧：主内容 */}
-        <div className="content-main">
-          <section>
-            {dates.length === 0 && (
-              <p style={{ color: "var(--muted)", textAlign: "center", padding: "3rem 0" }}>
-                暂无数据。请先运行 paper-topic-analyzer 生成论文选题。
-              </p>
-            )}
-
-            {dates.map((dateInfo) => {
-              const daily = getByDate(dateInfo.date);
-              if (!daily || daily.news.length === 0) return null;
-
-              return (
-                <div key={dateInfo.date} className="date-section">
-                  <div className="date-heading">
-                    <h2 style={{ margin: 0 }}>
-                      <Link href={`/date/${dateInfo.date}`} style={{ color: "inherit", textDecoration: "none" }}>
-                        {dateInfo.date}
-                      </Link>
-                    </h2>
-                    <span style={{ fontSize: "0.85rem", color: "var(--muted)" }}>
-                      {dateInfo.newsCount} 条新闻 · {dateInfo.topicsCount} 个选题
-                    </span>
-                  </div>
-
-                  {daily.news.map((news) => (
-                    <NewsCard key={news.slug} news={news} date={dateInfo.date} />
-                  ))}
-                </div>
-              );
-            })}
-          </section>
-        </div>
-      </div>
-    </>
-  );
+  return <SourcePage allExports={allExports} allDates={allDates} />;
 }
