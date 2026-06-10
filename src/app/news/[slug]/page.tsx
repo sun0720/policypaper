@@ -81,7 +81,7 @@ export default async function NewsDetailPage({ params }: Props) {
           <div className="news-content-body">
             {news.content.split("\n").map((paragraph, i) =>
               paragraph.trim() ? (
-                <p key={i}></p>
+                <p key={i}>{paragraph}</p>
               ) : null
             )}
           </div>
