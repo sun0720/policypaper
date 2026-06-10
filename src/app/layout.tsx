@@ -13,29 +13,19 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
   return (
     <html lang="zh-CN">
       <head>
-        {/* DNS 预解析 — 提前建立连接 */}
-        <link rel="dns-prefetch" href="//www.gov.cn" />
-        <link rel="dns-prefetch" href="//tv.cctv.com" />
-        {/* 字体渲染优化 — 避免 FOIT */}
-        <style dangerouslySetInnerHTML={{
-          __html: `@font-face{font-family:'STSong';src:local('Songti SC'),local('Noto Serif SC'),local('SimSun');font-display:swap;size-adjust:105%}`
-        }} />
+        {/* View Transitions API — 跨页面平滑过渡动画 */}
+        <meta name="view-transition" content="same-origin" />
+        {/* 预连接外部新闻源 — 提前完成 TCP+TLS 握手 */}
+        <link rel="preconnect" href="https://www.gov.cn" crossOrigin="anonymous" />
+        <link rel="preconnect" href="https://tv.cctv.com" crossOrigin="anonymous" />
       </head>
       <body>
         <header className="site-header">
           <div className="prose site-header-inner">
             <Link href="/" className="site-brand">
-              <img src="/logo.png" alt="PolicyPaper" className="site-logo-img" width="45" height="45" loading="eager" />
+              <img src="/logo.webp" alt="PolicyPaper" className="site-logo-img" width="45" height="45" loading="eager" />
               PolicyPaper
             </Link>
-            <nav className="header-source-nav">
-              <Link href="/?source=gov" className="header-source-btn" scroll={false}>
-                🇨🇳 中国政府网
-              </Link>
-              <Link href="/?source=cctv" className="header-source-btn" scroll={false}>
-                📺 新闻联播
-              </Link>
-            </nav>
           </div>
         </header>
         <main className="prose site-main">
