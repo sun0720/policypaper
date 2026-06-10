@@ -1,0 +1,16 @@
+# Cloudflare Pages 缓存优化
+# 静态资源 — 不可变长缓存
+/_next/static/*
+  Cache-Control: public, max-age=31536000, immutable
+
+# HTML 页面 — 短缓存（内容更新频率：每日）
+/*.html
+  Cache-Control: public, max-age=3600, stale-while-revalidate=86400
+
+# Logo 等静态资源
+/logo.png
+  Cache-Control: public, max-age=604800, immutable
+
+# 首页 — 更短的缓存（每日更新）
+/
+  Cache-Control: public, max-age=1800, stale-while-revalidate=3600
