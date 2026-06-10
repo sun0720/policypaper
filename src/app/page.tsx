@@ -80,11 +80,7 @@ function SourceSection({
             ? "中国政府网 · 经济学论文选题"
             : "新闻联播 · 经济学论文选题"}
         </h1>
-        <p>
-          {isGov
-            ? "依据中国政府网的经济新闻，AI 分析生成经济学论文选题方向"
-            : "依据新闻联播的经济片段，AI 分析生成经济学论文选题方向"}
-        </p>
+        <p></p>
       </section>
 
       <div className="content-layout">

@@ -28,6 +28,14 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
               <img src="/logo.png" alt="PolicyPaper" className="site-logo-img" width="45" height="45" loading="eager" />
               PolicyPaper
             </Link>
+            <nav className="header-source-nav">
+              <Link href="/?source=gov" className="header-source-btn" scroll={false}>
+                🇨🇳 中国政府网
+              </Link>
+              <Link href="/?source=cctv" className="header-source-btn" scroll={false}>
+                📺 新闻联播
+              </Link>
+            </nav>
           </div>
         </header>
         <main className="prose site-main">
@@ -35,13 +43,7 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
         </main>
         <footer className="site-footer">
           <div className="prose">
-            <p>
-              数据来源：
-              <a href="https://www.gov.cn" style={{ color: "var(--accent)" }}>中国政府网</a>
-              {" · "}
-              <a href="https://tv.cctv.com/lm/xwlb/" style={{ color: "var(--accent)" }}>新闻联播</a>
-              {" · "}仅供学术参考
-            </p>
+            <p></p>
           </div>
         </footer>
       </body>
