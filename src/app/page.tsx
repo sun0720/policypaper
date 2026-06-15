@@ -1,12 +1,14 @@
 /**
  * 首页 — 全量服务端渲染，CSS 驱动双源切换
  * 所有内容均在构建时生成到 HTML，无需客户端 JS 即可显示
- * 仅用 120 字节内联脚本处理 ?source= URL 参数
+ * SourceTabs 客户端组件替代 inline <script>，解决 Next.js
+ * 客户端导航后事件丢失的问题
  */
 import Link from "next/link";
 import { getAllGroupedByDate, getAllDates } from "@/lib/data";
 import { NewsCard } from "@/components/NewsCard";
 import { DateSidebar } from "@/components/DateSidebar";
+import { SourceTabs } from "@/components/SourceTabs";
 import type { DailyExport, NewsData } from "@/lib/parser";
 
 /** 按来源过滤并重建 DailyExport 列表 */
@@ -59,22 +61,6 @@ function SourceSection({
     >
       {/* Hero 区 */}
       <section className="page-hero">
-        <div className="source-tabs">
-          <a
-            href="#source-gov"
-            className={`source-tab${isGov ? " active" : ""}`}
-            data-source="gov"
-          >
-            🇨🇳 中国政府网
-          </a>
-          <a
-            href="#source-cctv"
-            className={`source-tab${!isGov ? " active" : ""}`}
-            data-source="cctv"
-          >
-            📺 新闻联播
-          </a>
-        </div>
         <h1>
           {isGov
             ? "中国政府网 · 经济学论文选题"
@@ -143,12 +129,11 @@ export default function HomePage() {
 
   return (
     <>
-      {/* CSS-only tab switching + URL param support — 内联零依赖 */}
-      <script
-        dangerouslySetInnerHTML={{
-          __html: `(function(){var p=new URLSearchParams(location.search);var s=p.get('source')==='cctv'?'cctv':'gov';var a=document.getElementById('source-'+s);var b=document.getElementById('source-'+(s==='gov'?'cctv':'gov'));if(a)a.style.display='';if(b)b.style.display='none';var t=document.querySelectorAll('.source-tab[data-source='+s+']');for(var i=0;i<t.length;i++)t[i].classList.add('active');var o=document.querySelectorAll('.source-tab[data-source='+(s==='gov'?'cctv':'gov')+']');for(var i=0;i<o.length;i++)o[i].classList.remove('active');})()`,
-        }}
-      />
+      {/* 双源切换标签 — 客户端组件，点击切换两个 SourceSection 的显示 */}
+      <div style={{ textAlign: "center", paddingTop: "0.5rem" }}>
+        <SourceTabs active="gov" />
+      </div>
+
       {/* gov 默认可视，cctv 默认隐藏 */}
       <SourceSection
         source="gov"
@@ -161,12 +146,6 @@ export default function HomePage() {
         exports={allExports}
         allDates={allDates}
         isDefault={false}
-      />
-      {/* 锚点 Tab 点击切换 — 纯 CSS anchor 降级 */}
-      <script
-        dangerouslySetInnerHTML={{
-          __html: `document.querySelectorAll('.source-tab').forEach(function(t){t.addEventListener('click',function(e){var s=this.dataset.source;var a=document.getElementById('source-'+s);var b=document.getElementById('source-'+(s==='gov'?'cctv':'gov'));if(a)a.style.display='';if(b)b.style.display='none';var url=new URL(location);url.searchParams.set('source',s);history.replaceState(null,'',url);e.preventDefault()})})`,
-        }}
       />
     </>
   );
