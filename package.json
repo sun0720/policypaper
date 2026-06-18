@@ -8,7 +8,8 @@
     "start": "next start",
     "typecheck": "tsc --noEmit",
     "validate:data": "node --no-warnings --experimental-strip-types scripts/validate-data.mjs",
-    "check": "npm run typecheck && npm run validate:data && npm run build"
+    "check": "npm run typecheck && npm run validate:data && npm run build",
+    "deploy": "npm run build && wrangler pages deploy out/ --project-name=policypaper"
   },
   "dependencies": {
     "next": "^16.0.0",
