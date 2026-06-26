@@ -37,6 +37,25 @@ let _bySource: Map<DataSource, DailyExport[]> | null = null;
 /** 全部导出列表（日期 DESC） */
 let _all: DailyExport[] | null = null;
 
+export interface SearchIndexItem {
+  slug: string;
+  title: string;
+  url: string;
+  date: string;
+  source: DataSource;
+  sourceLabel: string;
+  economicField: string;
+  subField: string;
+  excerpt: string;
+  topics: {
+    sortOrder: number;
+    title: string;
+    perspective: string;
+    researchQuestion: string;
+  }[];
+  searchText: string;
+}
+
 function getNewsFieldLabel(news: NewsData): string {
   return news.subField ? `${news.economicField} — ${news.subField}` : news.economicField;
 }
@@ -310,6 +329,66 @@ export function getAllTopics(): { topic: TopicData; news: NewsData; date: string
     }
   }
   return results;
+}
+
+/** 生成首页客户端搜索使用的精简索引 */
+export function getSearchIndex(): SearchIndexItem[] {
+  ensureLoaded();
+  const results: SearchIndexItem[] = [];
+
+  for (const exp of _all!) {
+    for (const news of exp.news) {
+      const source = (news.source || exp.source || "gov") as DataSource;
+      const topics = news.topics.map((topic) => ({
+        sortOrder: topic.sortOrder,
+        title: topic.title,
+        perspective: topic.perspective,
+        researchQuestion: topic.researchQuestion,
+      }));
+
+      const topicSearchText = news.topics
+        .map((topic) =>
+          [
+            topic.perspective,
+            topic.title,
+            topic.researchQuestion,
+            topic.theoreticalFramework,
+            topic.methodology,
+            topic.dataSources,
+            topic.innovation,
+          ]
+            .filter(Boolean)
+            .join(" ")
+        )
+        .join(" ");
+
+      results.push({
+        slug: news.slug,
+        title: news.title,
+        url: news.url,
+        date: exp.date,
+        source,
+        sourceLabel: source === "cctv" ? "新闻联播" : "中国政府网",
+        economicField: news.economicField,
+        subField: news.subField,
+        excerpt: news.content.slice(0, 180),
+        topics,
+        searchText: [
+          news.title,
+          news.content.slice(0, 500),
+          news.economicField,
+          news.subField,
+          source === "cctv" ? "新闻联播 cctv" : "中国政府网 gov",
+          topicSearchText,
+        ]
+          .filter(Boolean)
+          .join(" ")
+          .toLowerCase(),
+      });
+    }
+  }
+
+  return results.sort((a, b) => b.date.localeCompare(a.date));
 }
 
 /** 获取所有日期-新闻数据（双源合并，按日期 DESC，用于首页渲染） */

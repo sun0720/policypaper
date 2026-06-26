@@ -5,10 +5,11 @@
  * 客户端导航后事件丢失的问题
  */
 import Link from "next/link";
-import { getAllGroupedByDate, getAllDates } from "@/lib/data";
+import { getAllGroupedByDate, getAllDates, getSearchIndex } from "@/lib/data";
 import { NewsCard } from "@/components/NewsCard";
 import { DateSidebar } from "@/components/DateSidebar";
 import { SourceTabs } from "@/components/SourceTabs";
+import { SearchBox } from "@/components/SearchBox";
 import type { DailyExport, NewsData } from "@/lib/parser";
 
 /** 按来源过滤并重建 DailyExport 列表 */
@@ -126,9 +127,12 @@ function SourceSection({
 export default function HomePage() {
   const allExports = getAllGroupedByDate();
   const allDates = getAllDates();
+  const searchItems = getSearchIndex();
 
   return (
     <>
+      <SearchBox items={searchItems} />
+
       {/* 双源切换标签 — 客户端组件，点击切换两个 SourceSection 的显示 */}
       <div style={{ textAlign: "center", paddingTop: "0.5rem" }}>
         <SourceTabs active="gov" />

@@ -21,8 +21,8 @@ if (!fs.existsSync(exportsDir)) {
   fail("data/exports", "directory does not exist");
 } else {
   const files = fs
-    .readdirSync(exportsDir)
-    .filter((file) => file.endsWith("-paper-topics.md"))
+    .readdirSync(exportsDir, { recursive: true })
+    .filter((file) => typeof file === "string" && file.endsWith("-paper-topics.md"))
     .sort();
 
   assert("data/exports", files.length > 0, "no paper topic exports found");

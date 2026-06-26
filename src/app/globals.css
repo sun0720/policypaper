@@ -291,6 +291,161 @@ body {
   margin: 0 auto;
 }
 
+/* ====== 首页搜索 ====== */
+.home-search {
+  max-width: 860px;
+  margin: 0 auto 1.25rem auto;
+}
+
+.home-search-field {
+  display: flex;
+  align-items: center;
+  gap: 0.65rem;
+  min-height: 3.25rem;
+  padding: 0.35rem 0.45rem 0.35rem 1rem;
+  background: var(--card);
+  border: 1px solid var(--divider);
+  border-radius: 8px;
+  box-shadow: var(--shadow-sm);
+}
+
+.home-search-icon {
+  flex: 0 0 auto;
+  font-size: 1.1rem;
+  line-height: 1;
+}
+
+.home-search-field input {
+  flex: 1;
+  min-width: 0;
+  border: 0;
+  outline: 0;
+  background: transparent;
+  color: var(--foreground);
+  font: inherit;
+  font-size: 1rem;
+  line-height: 1.5;
+}
+
+.home-search-field input::placeholder {
+  color: var(--muted);
+}
+
+.home-search-field button {
+  flex: 0 0 auto;
+  border: 1px solid var(--divider);
+  border-radius: 6px;
+  padding: 0.45rem 0.75rem;
+  background: var(--background);
+  color: var(--muted);
+  font: inherit;
+  font-size: 0.85rem;
+  line-height: 1.2;
+  cursor: pointer;
+  transition: color 0.15s ease, border-color 0.15s ease, background 0.15s ease;
+}
+
+.home-search-field button:hover {
+  color: var(--accent);
+  border-color: var(--accent);
+  background: var(--card-hover);
+}
+
+.home-search-results {
+  margin-top: 0.75rem;
+  background: var(--card);
+  border: 1px solid var(--border);
+  border-radius: 8px;
+  box-shadow: var(--shadow-md);
+  overflow: hidden;
+}
+
+.home-search-summary {
+  padding: 0.65rem 1rem;
+  border-bottom: 1px solid var(--border);
+  color: var(--muted);
+  font-size: 0.88rem;
+  line-height: 1.5;
+}
+
+.home-search-list {
+  display: flex;
+  flex-direction: column;
+}
+
+.home-search-result {
+  padding: 0.95rem 1rem;
+  border-bottom: 1px solid var(--border);
+}
+
+.home-search-result:last-child {
+  border-bottom: 0;
+}
+
+.home-search-result-meta {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.45rem 0.75rem;
+  color: var(--muted);
+  font-size: 0.78rem;
+  line-height: 1.4;
+}
+
+.home-search-result h2 {
+  margin: 0.25rem 0 0.25rem 0;
+  font-family: "Microsoft YaHei", "PingFang SC", sans-serif;
+  font-size: 1.05rem;
+  line-height: 1.55;
+  font-weight: 700;
+}
+
+.home-search-result h2 a {
+  color: var(--foreground);
+  text-decoration: none;
+}
+
+.home-search-result h2 a:hover {
+  color: var(--accent);
+}
+
+.home-search-result p {
+  margin: 0;
+  color: var(--muted);
+  font-size: 0.88rem;
+  line-height: 1.65;
+}
+
+.home-search-topic-list {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.4rem;
+  margin-top: 0.6rem;
+}
+
+.home-search-topic-list a {
+  max-width: 100%;
+  padding: 0.25rem 0.55rem;
+  border-radius: 4px;
+  background: rgba(180, 83, 9, 0.08);
+  color: var(--accent);
+  font-size: 0.78rem;
+  line-height: 1.45;
+  text-decoration: none;
+}
+
+.home-search-topic-list a:hover {
+  background: rgba(180, 83, 9, 0.14);
+}
+
+@media (prefers-color-scheme: dark) {
+  .home-search-topic-list a {
+    background: rgba(245, 158, 11, 0.12);
+  }
+  .home-search-topic-list a:hover {
+    background: rgba(245, 158, 11, 0.2);
+  }
+}
+
 /* ====== Hero 区域双源切换 Tab ====== */
 .source-tabs {
   display: inline-flex;
@@ -872,6 +1027,19 @@ a:focus-visible {
   body {
     font-size: 16px;
   }
+  .home-search {
+    margin-bottom: 1rem;
+  }
+  .home-search-field {
+    min-height: 3rem;
+    padding-left: 0.8rem;
+  }
+  .home-search-field input {
+    font-size: 0.95rem;
+  }
+  .home-search-result {
+    padding: 0.85rem 0.9rem;
+  }
   .topic-card {
     padding: 1rem 1.1rem;
     border-left-width: 2px;
@@ -936,6 +1104,26 @@ a:focus-visible {
     padding: 0.85rem 1rem;
     margin-bottom: 0.6rem;
     border-radius: 8px;
+  }
+  .home-search-field {
+    gap: 0.45rem;
+    padding-right: 0.35rem;
+  }
+  .home-search-icon {
+    font-size: 1rem;
+  }
+  .home-search-field button {
+    padding: 0.4rem 0.55rem;
+    font-size: 0.8rem;
+  }
+  .home-search-summary {
+    padding: 0.55rem 0.8rem;
+  }
+  .home-search-result h2 {
+    font-size: 1rem;
+  }
+  .home-search-topic-list a {
+    font-size: 0.76rem;
   }
   .news-card h2 {
     font-size: 1.05rem;
